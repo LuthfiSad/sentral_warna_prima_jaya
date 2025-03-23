@@ -21,5 +21,5 @@ def authenticate_user(db: Session, email, password):
     if not user or not verify_password(password, user.password_hash):
         raise AppError(401, MESSAGE_CODE.UNAUTHORIZED, "Invalid credentials")
 
-    token = create_access_token({"sub": {"name": user.username, "email": user.email}})
+    token = create_access_token({"sub": {"name": user.username, "email": user.email, "id": user.id}})
     return {"access_token": token}

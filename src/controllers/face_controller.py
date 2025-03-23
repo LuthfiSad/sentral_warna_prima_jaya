@@ -7,12 +7,12 @@ from src.utils.message_code import MESSAGE_CODE
 from src.config.database import get_db
 
 async def register(
-    face_data: FaceRegisterSchema,
+    name: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     image_data = await file.read()
-    result = register_face(db, face_data.name, image_data)
+    result = await register_face(db, name, image_data)
     return handle_response(201, MESSAGE_CODE.CREATED, "Face registered successfully", result)
 
 async def verify(file: UploadFile = File(...), db: Session = Depends(get_db)):

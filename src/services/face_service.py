@@ -7,12 +7,19 @@ from src.repositories.face_repository import FaceRepository
 from src.libs.supabase import upload_image_to_supabase
 from src.utils.error import AppError
 from src.utils.message_code import MESSAGE_CODE
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "..", "models-face")
+
+SP_MODEL_PATH = os.path.join(MODEL_DIR, "shape_predictor_68_face_landmarks.dat")
+FACE_REC_MODEL_PATH = os.path.join(MODEL_DIR, "dlib_face_recognition_resnet_model_v1.dat")
 
 detector = dlib.get_frontal_face_detector()
-sp = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-face_rec_model = dlib.face_recognition_model_v1("dlib_face_recognition_resnet_model_v1.dat")
+sp = dlib.shape_predictor(SP_MODEL_PATH)
+face_rec_model = dlib.face_recognition_model_v1(FACE_REC_MODEL_PATH)
 
-def register_face(db: Session, name: str, image_data: bytes):
+async def register_face(db: Session, name: str, image_data: bytes):
     image = Image.open(BytesIO(image_data)).convert("RGB")
     img = np.array(image)
 
@@ -25,7 +32,7 @@ def register_face(db: Session, name: str, image_data: bytes):
 
     face_id = ','.join(map(str, face_encoding))
 
-    image_url = upload_image_to_supabase(image_data)
+    image_url = await upload_image_to_supabase(image_data)
     if type(image_url) is AppError:
         raise image_url
 
