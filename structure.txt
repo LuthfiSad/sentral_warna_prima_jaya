@@ -1,0 +1,27 @@
+/project
+ ├── src/
+ │   ├── config/             # Konfigurasi database & environment
+ │   │   ├── database.py
+ │   │   ├── settings.py
+ │   ├── routes/             # Routing layer
+ │   │   ├── auth_routes.py
+ │   ├── controllers/        # Controller layer
+ │   │   ├── auth_controller.py
+ │   ├── services/           # Business logic layer
+ │   │   ├── auth_service.py
+ │   ├── models/             # Data models (Schemas & ORM)
+ │   │   ├── user_model.py
+ │   ├── schemas/            # Request & Response Schemas
+ │   │   ├── user_schema.py
+ │   ├── middlewares/        # Middleware (Auth, Logging, etc.)
+ │   ├── utils/              # Helper functions
+ │   │   ├── response.py
+ │   │   ├── error.py
+ │   │   ├── jwt.py
+ │   │   ├── security.py
+ │   │   ├── message_code.py
+ │   ├── main.py             # Entry point
+ ├── .env                    # Environment variables
+ ├── requirements.txt
+ ├── alembic/                # Database migrations
+ └── ...
