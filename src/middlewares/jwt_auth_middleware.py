@@ -8,7 +8,7 @@ from src.utils.message_code import MESSAGE_CODE
 from src.utils.response import handle_response
 
 def is_excluded_path(path: str) -> bool:
-    EXCLUDED_PATHS = ["/auth/register", "/auth/login"]
+    EXCLUDED_PATHS = ["/auth/register", "/auth/login", "/"]
     return path in EXCLUDED_PATHS
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):

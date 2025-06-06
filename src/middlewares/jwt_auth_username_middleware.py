@@ -20,3 +20,13 @@ class CheckLuthfiMiddleware(BaseHTTPMiddleware):
                 content=handle_response(403, MESSAGE_CODE.FORBIDDEN, "Access restricted to user 'luthfi' only")
             )
         return await call_next(request)
+
+
+async def check_luthfi_user(request: Request):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("username") != "luthfi":
+        return JSONResponse(
+            status_code=403,
+            content=handle_response(403, MESSAGE_CODE.FORBIDDEN, "Access restricted to user 'luthfi' only")
+        )
+    return user

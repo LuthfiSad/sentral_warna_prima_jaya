@@ -11,19 +11,20 @@ class AppError(Exception):
         self.message = message
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors = [
-        {"field": ".".join(map(str, error["loc"])), "message": error["msg"]}
-        for error in exc.errors()
-    ]
+    errors = {}
+    for error in exc.errors():
+        # Ambil field terakhir dari loc (biasanya nama field)
+        field = error['loc'][-1] if error['loc'] else "unknown"
+        errors[field] = error["msg"]
 
     return JSONResponse(
         content=handle_response(
-            status=422,
+            status=400,
             code="VALIDATION_ERROR",
             message="Validation failed",
-            error=errors,  # Ubah 'data' jadi 'error'
+            error=errors,
         ),
-        status_code=422,
+        status_code=400,
     )
 
 async def app_error_handler(request: Request, exc: AppError):
