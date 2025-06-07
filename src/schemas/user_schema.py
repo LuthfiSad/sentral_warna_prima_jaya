@@ -1,18 +1,41 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
+
+from src.schemas.employee_schema import EmployeeResponseSchema
 
 class UserRegisterSchema(BaseModel):
-    username: str
-    email: str
+    username: str = Field(..., min_length=3, max_length=100)
+    email: EmailStr
+    is_admin: Optional[bool] = False
+    key_admin: Optional[str]
     password: str = Field(..., min_length=8)
 
 class UserLoginSchema(BaseModel):
-    email: str
+    login: str  # bisa email atau username
     password: str
+    
+class UserUpdateSchema(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=100)
+    email: Optional[EmailStr] = None
+    is_admin: Optional[bool] = None
+    key_admin: Optional[str]
+
+class UserResetPasswordSchema(BaseModel):
+    password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+    def validate_passwords_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match")
+        return self
 
 class UserResponseSchema(BaseModel):
     id: int
     username: str
     email: str
+    is_admin: bool
+    karyawan_id: Optional[int]
+    employee: Optional[EmployeeResponseSchema] = None
 
     class Config:
         from_attributes = True

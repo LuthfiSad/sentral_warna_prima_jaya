@@ -5,7 +5,7 @@ from src.utils.response import handle_response
 from src.utils.message_code import MESSAGE_CODE
 
 def is_excluded_path(path: str) -> bool:
-    EXCLUDED_PATHS = ["/auth/register", "/auth/login", "faces/verify", "faces/register"]
+    EXCLUDED_PATHS = ["/users/auth/register", "/users/auth/login"]
     return path in EXCLUDED_PATHS
 
 class CheckLuthfiMiddleware(BaseHTTPMiddleware):

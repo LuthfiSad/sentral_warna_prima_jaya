@@ -8,7 +8,7 @@ from src.utils.message_code import MESSAGE_CODE
 from src.utils.response import handle_response
 
 def is_excluded_path(path: str) -> bool:
-    EXCLUDED_PATHS = ["/auth/register", "/auth/login", "/"]
+    EXCLUDED_PATHS = ["/users/auth/register", "/users/auth/login", "/"]
     return path in EXCLUDED_PATHS
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
@@ -31,7 +31,8 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             payload = jwt.get_unverified_claims(token)
             sub = payload.get("sub", {})  # Ambil sub, default ke dict kosong jika tidak ada
             user_id = sub.get("id")  # ✅ Ambil "id" dari dalam "sub"
-            username = sub.get("name") 
+            username = sub.get("username") 
+            is_admin = sub.get("is_admin")
             exp = payload.get("exp")
             
             # Cek apakah token sudah kedaluwarsa
@@ -51,9 +52,10 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             # Simpan user ke dalam request state agar bisa digunakan di route
             request.state.user = {
                 "user_id": user_id,
-                "username": username
+                "username": username,
+                "is_admin": is_admin
             }
-            user = getattr(request.state, "user", None)
+            # user = getattr(request.state, "user", None)
 
         except JWTError:
             return JSONResponse(
