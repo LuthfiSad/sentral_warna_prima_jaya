@@ -100,7 +100,7 @@ class EmployeeService:
         return {"message": "Employee deleted successfully"}
     
     @staticmethod
-    def verify_face(db: Session, image_data: bytes):
+    def verify_face(db: Session, image_data: bytes, employee_id: Optional[int] = None):
         """
         Verify face and return employee data if match found
         """
@@ -119,8 +119,17 @@ class EmployeeService:
             face_encoding = np.array(face_rec_model.compute_face_descriptor(img, shape))
 
             # Get all employees with face data
-            employees = EmployeeRepository.get_all_with_face_data(db)
-            
+            # employees = EmployeeRepository.get_all_with_face_data(db)
+            if employee_id:
+                employee = EmployeeRepository.get_by_id(db, employee_id)
+                if not employee or not employee.face_encoding:
+                    raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Employee not found or no face data available")
+                employees = [employee]
+            else:
+                employees = EmployeeRepository.get_all_with_face_data(db)
+                if not employees:
+                    raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "No registered faces found")
+                
             if not employees:
                 raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "No registered faces found")
 

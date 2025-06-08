@@ -13,6 +13,8 @@ from typing import Optional
 # Update src/repositories/employee_repository.py - tambahkan method ini
 from sqlalchemy import func, or_
 
+from src.routes import user_routes
+
 class EmployeeRepository:
     # ... existing methods ...
     
@@ -82,60 +84,13 @@ from src.schemas.user_schema import UserUpdateSchema, UserResetPasswordSchema
 
 router = APIRouter()
 
-@router.get("/")
-@catch_exceptions
-async def get_all_users(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
-    search: str = Query(None),
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
-):
-    return await UserController.get_all_users(page, per_page, search, db)
 
-@router.get("/{user_id}")
-@catch_exceptions
-async def get_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
-):
-    return await UserController.get_user(user_id, db)
-
-@router.put("/{user_id}")
-@catch_exceptions
-async def update_user(
-    user_id: int,
-    user_data: UserUpdateSchema,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
-):
-    return await UserController.update_user(user_id, user_data, db)
-
-@router.post("/{user_id}/reset-password")
-@catch_exceptions
-async def reset_password(
-    user_id: int,
-    password_data: UserResetPasswordSchema,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
-):
-    return await UserController.reset_password(user_id, password_data, db)
-
-@router.delete("/{user_id}")
-@catch_exceptions
-async def delete_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
-):
-    return await UserController.delete_user(user_id, db)
 
 
 # ==================== UPDATE MAIN.PY ====================
 
 # Tambahkan import di main.py
-from src.routes import auth_routes, employee_routes, user_routes
+from src.routes import employee_routes, user_routes
 
 # Tambahkan route di main.py
 app.include_router(user_routes.router, prefix="/users", tags=["Users"])

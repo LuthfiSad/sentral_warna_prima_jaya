@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 
-from src.routes import employee_routes, user_routes
+from src.routes import attendance_routes, employee_routes, user_routes, report_routes
 from src.utils.error import app_error_handler, AppError, validation_exception_handler
 from src.config.settings import PORT
 from fastapi.exceptions import RequestValidationError
@@ -23,6 +23,8 @@ app.add_middleware(JWTAuthMiddleware)
 # Include routes
 app.include_router(user_routes.router, prefix="/users", tags=["Authentication"])
 app.include_router(employee_routes.router, prefix="/employees", tags=["Employees"])
+app.include_router(attendance_routes.router, prefix="/attendances", tags=["Attendances"])
+app.include_router(report_routes.router, prefix="/reports", tags=["Reports"])
 
 # Custom error handlers
 app.add_exception_handler(AppError, app_error_handler)

@@ -12,3 +12,7 @@ SUPABASE_URL=os.getenv("SUPABASE_URL")
 SUPABASE_KEY=os.getenv("SUPABASE_KEY")
 BUCKET_FACES=os.getenv("BUCKET_FACES", "faces")
 ADMIN_KEY=os.getenv("ADMIN_KEY")
+# Office location coordinates
+OFFICE_LATITUDE = float(os.getenv("OFFICE_LATITUDE"))
+OFFICE_LONGITUDE = float(os.getenv("OFFICE_LONGITUDE"))
+ALLOWED_RADIUS_KM = float(os.getenv("ALLOWED_RADIUS_KM"))
