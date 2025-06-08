@@ -42,6 +42,11 @@ class EmployeeRepository:
                 "totalData": total_data
             }
         }
+        
+    @staticmethod
+    def get_all_with_face_data(db: Session) -> List[Employee]:
+        """Get all employees that have face encoding data"""
+        return db.query(Employee).filter(Employee.face_encoding.isnot(None)).all()
 
     @staticmethod
     def get_by_id(db: Session, employee_id: int) -> Optional[Employee]:
@@ -52,14 +57,15 @@ class EmployeeRepository:
         return db.query(Employee).filter(Employee.email == email).first()
 
     @staticmethod
-    def create(db: Session, name: str, email: str, date_of_birth, divisi: str, address: str, image_url: str = None) -> Employee:
+    def create(db: Session, name: str, email: str, date_of_birth, divisi: str, address: str, image_url: str = None, face_encoding: str = None) -> Employee:
         new_employee = Employee(
             name=name,
             email=email,
             date_of_birth=date_of_birth,
             divisi=divisi,
             address=address,
-            image_url=image_url
+            image_url=image_url,
+            face_encoding=face_encoding
         )
         db.add(new_employee)
         db.commit()

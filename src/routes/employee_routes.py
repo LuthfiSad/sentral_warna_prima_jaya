@@ -47,7 +47,7 @@ async def create_employee(
     date_of_birth: date = Form(...),
     divisi: str = Form(...),
     address: str = Form(...),
-    image: Optional[UploadFile] = File(None),
+    image: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_admin)
 ):
@@ -76,3 +76,11 @@ async def delete_employee(
     current_user: dict = Depends(require_admin)
 ):
     return await EmployeeController.delete_employee(employee_id, db)
+
+@router.post("/verify")
+@catch_exceptions
+async def verify_face_route(
+    image: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
+    return await EmployeeController.verify_face(image, db)

@@ -8,7 +8,7 @@ from datetime import date
 from typing import Optional
 
 class EmployeeController:
-    @staticmethod
+    # @staticmethod
     # async def get_all_employees(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     #     employees = EmployeeService.get_all_employees(db, skip, limit)
     #     return handle_response(200, MESSAGE_CODE.SUCCESS, "Employees retrieved successfully", employees)
@@ -41,12 +41,10 @@ class EmployeeController:
         date_of_birth: date = Form(...),
         divisi: str = Form(...),
         address: str = Form(...),
-        image: Optional[UploadFile] = File(None),
+        image: UploadFile = File(...),
         db: Session = Depends(get_db)
     ):
-        image_data = None
-        if image:
-            image_data = await image.read()
+        image_data = await image.read()
         
         employee = await EmployeeService.create_employee(
             db, name, email, date_of_birth, divisi, address, image_data
@@ -77,3 +75,9 @@ class EmployeeController:
     async def delete_employee(employee_id: int, db: Session = Depends(get_db)):
         result = EmployeeService.delete_employee(db, employee_id)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Employee deleted successfully", result)
+    
+    @staticmethod
+    async def verify_face(image: UploadFile = File(...), db: Session = Depends(get_db)):
+        image_data = await image.read()
+        result = EmployeeService.verify_face(db, image_data)
+        return handle_response(200, MESSAGE_CODE.SUCCESS, "Face verification completed", result)

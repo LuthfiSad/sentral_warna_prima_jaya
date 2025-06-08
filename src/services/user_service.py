@@ -128,5 +128,5 @@ class UserService:
         
         success = UserRepository.delete(db, user_id)
         if not success:
-            raise AppError(500, MESSAGE_CODE.INTERNAL_ERROR, "Failed to delete user")
+            raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, "Failed to delete user")
         return {"message": "User deleted successfully"}
