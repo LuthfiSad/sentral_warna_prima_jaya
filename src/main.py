@@ -11,6 +11,9 @@ from src.middlewares.jwt_auth_middleware import JWTAuthMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from src.utils.response import handle_response
 
+# Import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="Employee Management System", version="1.0.0")
 
 # Default route
@@ -18,7 +21,28 @@ app = FastAPI(title="Employee Management System", version="1.0.0")
 def read_root():
     return {"message": "Welcome to My Api!"}
 
-app.add_middleware(JWTAuthMiddleware)
+# --- Konfigurasi CORS di sini ---
+# ✅ Update origins to be more permissive and include both HTTP and potential HTTPS
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    # Untuk production, ganti dengan domain yang sebenarnya
+    # "https://yourdomain.com"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # ✅ Atau gunakan ["*"] untuk development
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],  # ✅ Tambahkan lebih banyak methods
+    allow_headers=["*"],  # ✅ Allow all headers
+    expose_headers=["*"],
+    max_age=600  # Cache preflight response for 10 minutes
+)
+# --- Akhir Konfigurasi CORS ---
+
+# ✅ Pastikan JWTAuthMiddleware berada setelah CORSMiddleware
+app.add_middleware(JWTAuthMiddleware) 
 
 # Include routes
 app.include_router(user_routes.router, prefix="/users", tags=["Authentication"])
@@ -38,7 +62,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             code="HTTP_ERROR",
             message=str(exc.detail)
         ),
-        status_code=exc.status_code
+        status_code=exc.status_code,
+        headers={  # ✅ Tambahkan CORS headers
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        }
     )
 
 @app.exception_handler(StarletteHTTPException)
@@ -49,7 +78,12 @@ async def starlette_http_exception_handler(request: Request, exc: StarletteHTTPE
             code="HTTP_ERROR",
             message=str(exc.detail)
         ),
-        status_code=exc.status_code
+        status_code=exc.status_code,
+        headers={  # ✅ Tambahkan CORS headers
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        }
     )
 
 if __name__ == "__main__":

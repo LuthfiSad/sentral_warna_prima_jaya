@@ -9,19 +9,22 @@ from src.schemas.user_schema import UserResponseSchema
 
 class UserRepository:
     @staticmethod
-    def get_by_username(db: Session, username: str) -> Optional[User]:
-        return db.query(User).options(joinedload(User.employee)).filter(User.username == username).first()
-    
+    def get_by_username(db: Session, username: str) -> Optional[UserResponseSchema]:
+        user = db.query(User).options(joinedload(User.employee)).filter(User.username == username).first()
+        return UserResponseSchema.model_validate(user) if user else None
+
     @staticmethod
-    def get_by_email(db: Session, email: str) -> Optional[User]:
-        return db.query(User).options(joinedload(User.employee)).filter(User.email == email).first()
+    def get_by_email(db: Session, email: str) -> Optional[UserResponseSchema]:
+        user = db.query(User).options(joinedload(User.employee)).filter(User.email == email).first()
+        return UserResponseSchema.model_validate(user) if user else None
 
     @staticmethod
     def get_by_login(db: Session, login: str) -> Optional[User]:
         """Get user by username or email"""
-        return db.query(User).options(joinedload(User.employee)).filter(
+        user = db.query(User).options(joinedload(User.employee)).filter(
             (User.username == login) | (User.email == login)
         ).first()
+        return user
 
     @staticmethod
     def create(db: Session, username: str, email: str, password_hash: str, karyawan_id: int, is_admin: bool = False) -> User:
@@ -77,7 +80,7 @@ class UserRepository:
     @staticmethod
     def get_by_id(db: Session, user_id: int) -> Optional[User]:
         user = db.query(User).options(joinedload(User.employee)).filter(User.id == user_id).first()
-        return UserResponseSchema.model_validate(user)
+        return UserResponseSchema.model_validate(user) if user else None
     
     @staticmethod
     def update(db: Session, user_id: int, **kwargs) -> Optional[User]:

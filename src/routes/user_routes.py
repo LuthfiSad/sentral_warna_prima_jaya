@@ -1,17 +1,20 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from src.controllers.user_controller import UserController
 from src.middlewares.admin_middleware import get_current_user, require_admin
 from src.middlewares.catch_wrapper import catch_exceptions
 from src.config.database import get_db
+from src.middlewares.jwt_auth_middleware import get_current_user_or_none
 from src.schemas.user_schema import UserRegisterSchema, UserLoginSchema, UserResetPasswordSchema, UserUpdateSchema
 
 router = APIRouter()
 
 @router.post("/auth/register")
 @catch_exceptions
-def register_route(user_data: UserRegisterSchema, db: Session = Depends(get_db)):
-    return UserController.register(user_data, db)
+def register_route(user_data: UserRegisterSchema, current_user: Optional[dict] = Depends(get_current_user_or_none), db: Session = Depends(get_db)):
+    is_admin = current_user["is_admin"] if current_user else False
+    return UserController.register(user_data, is_admin, db)
 
 @router.post("/auth/login")
 @catch_exceptions
@@ -56,7 +59,7 @@ async def update_user(
 ):
     return await UserController.update_user(user_id, user_data, db)
 
-@router.post("/{user_id}/reset-password")
+@router.post("/reset-password/{user_id}")
 @catch_exceptions
 async def reset_password(
     user_id: int,

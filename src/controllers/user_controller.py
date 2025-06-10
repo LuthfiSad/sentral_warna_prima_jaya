@@ -8,8 +8,8 @@ from src.config.database import get_db
 
 class UserController:
     @staticmethod
-    def register(user_data: UserRegisterSchema, db: Session = Depends(get_db)):
-        user = UserService.register_user(db, user_data.username, user_data.email, user_data.password, user_data.is_admin, user_data.key_admin)
+    def register(user_data: UserRegisterSchema, is_admin: bool, db: Session = Depends(get_db)):
+        user = UserService.register_user(db, user_data.username, user_data.email, user_data.password, user_data.is_admin, user_data.key_admin, is_admin)
         return handle_response(201, MESSAGE_CODE.CREATED, "User registered successfully", {
             "id": user.id,
             "username": user.username,
@@ -55,7 +55,7 @@ class UserController:
     @staticmethod
     async def update_user(user_id: int, user_data: UserUpdateSchema, db: Session = Depends(get_db)):
         user = UserService.update_user(
-            db, user_id, user_data.username, user_data.email, user_data.is_admin, user_data.key_admin
+            db, user_id, user_data.username, user_data.email, user_data.is_admin
         )
         return handle_response(200, MESSAGE_CODE.SUCCESS, "User updated successfully", user)
     

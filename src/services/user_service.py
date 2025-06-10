@@ -10,7 +10,7 @@ from src.utils.message_code import MESSAGE_CODE
 
 class UserService:
     @staticmethod
-    def register_user(db: Session, username: str, email: str, password: str, is_admin: bool = False, key_admin: str = None):
+    def register_user(db: Session, username: str, email: str, password: str, is_admin: bool = False, key_admin: str = None, user_is_admin: bool = False):
         # Check if username already exists
         if UserRepository.get_by_username(db, username):
             raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Username already exists")
@@ -20,25 +20,28 @@ class UserService:
             raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Email already registered as user")
 
         # Check if employee with this email exists
-        if is_admin:
-            if not key_admin or key_admin != ADMIN_KEY:
+        # print(user_is_admin, "user_is_admin")
+        if is_admin and not user_is_admin:
+            if key_admin is None or key_admin != ADMIN_KEY:
                 raise AppError(403, MESSAGE_CODE.FORBIDDEN, "Invalid admin key")
         
         # Jika bukan admin, lakukan pengecekan employee
-        employee = None
-        if not is_admin:
-            employee = EmployeeRepository.get_by_email(db, email)
-            if not employee:
-                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, 
-                            "Email not found in employee database. Please contact admin.")
+        # employee = None
+        # if not is_admin:
+        employee = EmployeeRepository.get_by_email(db, email)
+        if not employee and not is_admin:
+            raise AppError(400, MESSAGE_CODE.BAD_REQUEST, 
+                        "Email not found in employee database. Please contact admin.")
             
             # Cek apakah employee sudah punya akun
+        if employee:
             existing_user = db.query(User).filter(User.karyawan_id == employee.id).first()
             if existing_user:
                 raise AppError(400, MESSAGE_CODE.BAD_REQUEST, 
                             "Employee already has a user account")
 
         hashed_password = hash_password(password)
+        # return
         user = UserRepository.create(db, username, email, hashed_password, employee.id, is_admin)
         return user
 
@@ -52,9 +55,9 @@ class UserService:
             "sub": {
                 "id": user.id,
                 "username": user.username,
-                "email": user.email,
+                # "email": user.email,
                 "is_admin": user.is_admin,
-                "karyawan_id": user.karyawan_id
+                # "karyawan_id": user.karyawan_id
             }
         }
         token = create_access_token(token_data)
@@ -72,7 +75,7 @@ class UserService:
         return user
     
     @staticmethod
-    def update_user(db: Session, user_id: int, username: str = None, email: str = None, is_admin: bool = None, key_admin: str = None):
+    def update_user(db: Session, user_id: int, username: str = None, email: str = None, is_admin: bool = None):
         user = UserRepository.get_by_id(db, user_id)
         if not user:
             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "User not found")

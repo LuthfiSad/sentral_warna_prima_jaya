@@ -7,7 +7,7 @@ class UserRegisterSchema(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     email: EmailStr
     is_admin: Optional[bool] = False
-    key_admin: Optional[str]
+    key_admin: Optional[str] = None
     password: str = Field(..., min_length=8)
 
 class UserLoginSchema(BaseModel):
@@ -18,7 +18,6 @@ class UserUpdateSchema(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=100)
     email: Optional[EmailStr] = None
     is_admin: Optional[bool] = None
-    key_admin: Optional[str]
 
 class UserResetPasswordSchema(BaseModel):
     password: str = Field(..., min_length=8)
