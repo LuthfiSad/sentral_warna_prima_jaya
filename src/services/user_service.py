@@ -57,7 +57,7 @@ class UserService:
                 "username": user.username,
                 # "email": user.email,
                 "is_admin": user.is_admin,
-                # "karyawan_id": user.karyawan_id
+                "karyawan_id": user.karyawan_id
             }
         }
         token = create_access_token(token_data)

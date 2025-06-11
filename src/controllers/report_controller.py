@@ -15,7 +15,7 @@ class ReportController:
     @staticmethod
     async def create_report(
         date: date = Form(...),
-        name: str = Form(...),
+        employee_id: int = Form(...),
         report: str = Form(...),
         image: Optional[UploadFile] = File(None),
         db: Session = Depends(get_db)
@@ -24,7 +24,7 @@ class ReportController:
         if image:
             image_data = await image.read()
         
-        result = await ReportService.create_report(db, date, name, report, image_data)
+        result = await ReportService.create_report(db, date, employee_id, report, image_data)
         return handle_response(201, MESSAGE_CODE.CREATED, "Report created successfully", result)
 
     @staticmethod
@@ -32,9 +32,10 @@ class ReportController:
         page: int = 1,
         per_page: int = 10,
         search: Optional[str] = None,
+        karyawan_id: Optional[str] = None,
         db: Session = Depends(get_db)
     ):
-        result = ReportService.get_all_reports(db, page, per_page, search)
+        result = ReportService.get_all_reports(db, page, per_page, search, karyawan_id)
         return handle_response(
             200,
             MESSAGE_CODE.SUCCESS,
@@ -52,13 +53,13 @@ class ReportController:
     ):  
         reports = ReportService.export_reports_excel(db, start_date, end_date)
         
-        # Convert to DataFrame
         data = []
         for report in reports:
             data.append({
                 'ID': report.id,
                 'Date': report.date.strftime('%Y-%m-%d'),
-                'Name': report.name,
+                'Employee ID': report.employee_id,
+                'Employee Name': report.employee.name,
                 'Report': report.report,
                 'Status': report.status.value,
                 'Image URL': report.image_url or '',
@@ -68,14 +69,12 @@ class ReportController:
         
         df = pd.DataFrame(data)
         
-        # Create Excel file in memory
         excel_buffer = BytesIO()
         with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name='Reports', index=False)
         
         excel_buffer.seek(0)
         
-        # Generate filename with date range
         filename = "reports_export"
         if start_date:
             filename += f"_from_{start_date.strftime('%Y%m%d')}"
@@ -88,6 +87,7 @@ class ReportController:
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
+
     
     # @staticmethod
     # async def get_all_reports(
@@ -117,7 +117,7 @@ class ReportController:
     async def update_report(
         report_id: int,
         date: Optional[date] = Form(None),
-        name: Optional[str] = Form(None),
+        employee_id: Optional[int] = Form(None),
         report: Optional[str] = Form(None),
         image: Optional[UploadFile] = File(None),
         db: Session = Depends(get_db)
@@ -126,7 +126,7 @@ class ReportController:
         if image:
             image_data = await image.read()
         
-        result = await ReportService.update_report(db, report_id, date, name, report, image_data)
+        result = await ReportService.update_report(db, report_id, date, employee_id, report, image_data)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report updated successfully", result)
 
     @staticmethod
@@ -134,12 +134,18 @@ class ReportController:
         result = ReportService.delete_report(db, report_id)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report deleted successfully", result)
 
-    @staticmethod
-    async def approve_report(report_id: int, db: Session = Depends(get_db)):
-        result = ReportService.approve_report(db, report_id)
-        return handle_response(200, MESSAGE_CODE.SUCCESS, "Report approved successfully", result)
+    # @staticmethod
+    # async def approve_report(report_id: int, db: Session = Depends(get_db)):
+    #     result = ReportService.approve_report(db, report_id)
+    #     return handle_response(200, MESSAGE_CODE.SUCCESS, "Report approved successfully", result)
 
+    # @staticmethod
+    # async def reject_report(report_id: int, db: Session = Depends(get_db)):
+    #     result = ReportService.reject_report(db, report_id)
+    #     return handle_response(200, MESSAGE_CODE.SUCCESS, "Report rejected successfully", result)
+    
     @staticmethod
-    async def reject_report(report_id: int, db: Session = Depends(get_db)):
-        result = ReportService.reject_report(db, report_id)
-        return handle_response(200, MESSAGE_CODE.SUCCESS, "Report rejected successfully", result)
+    async def update_report_status(report_id: int, status: str, db: Session = Depends(get_db)):
+        result = ReportService.update_report_status(db, report_id, status)
+        message = "Report approved successfully" if status == "approve" else "Report rejected successfully"
+        return handle_response(200, MESSAGE_CODE.SUCCESS, message, result)

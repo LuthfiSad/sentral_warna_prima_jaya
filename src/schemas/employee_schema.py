@@ -24,8 +24,8 @@ class EmployeeResponseSchema(BaseModel):
     divisi: str
     address: str
     image_url: Optional[str] = None
-    created_at: str
-    updated_at: Optional[str] = None
+    # created_at: str
+    # updated_at: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -47,6 +47,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             user_id = sub.get("id")  # ✅ Ambil "id" dari dalam "sub"
             username = sub.get("username") 
             is_admin = sub.get("is_admin")
+            karyawan_id = sub.get("karyawan_id")
             exp = payload.get("exp")
             
             # Cek apakah token sudah kedaluwarsa
@@ -77,7 +78,8 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             request.state.user = {
                 "user_id": user_id,
                 "username": username,
-                "is_admin": is_admin
+                "is_admin": is_admin,
+                "karyawan_id": karyawan_id
             }
 
         except JWTError:
@@ -122,10 +124,12 @@ async def get_current_user_or_none(request: Request) -> Optional[Dict[str, Any]]
         if exp and datetime.fromtimestamp(exp, timezone.utc) < datetime.now(timezone.utc):
             return None
         
+        print(sub.get("karyawan_id"), "get_current_user_or_none")
         return {
             "user_id": sub.get("id"),
             "username": sub.get("username"),
-            "is_admin": sub.get("is_admin", False)
+            "is_admin": sub.get("is_admin", False),
+            "karyawan_id": sub.get("karyawan_id", None)
         }
     except (JWTError, AttributeError):
         return None

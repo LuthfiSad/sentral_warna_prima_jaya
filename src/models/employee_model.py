@@ -19,3 +19,4 @@ class Employee(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     attendances = relationship("Attendance", back_populates="employee")
+    reports = relationship("Report", back_populates="employee")

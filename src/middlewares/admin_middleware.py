@@ -6,6 +6,13 @@ async def get_current_user(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     return user
 
+async def mush_not_admin_have_employee(user: dict = Depends(get_current_user)):
+    if user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin not allowed")
+    if not user.get("karyawan_id"):
+        raise HTTPException(status_code=403, detail="Employee required")
+    return user
+
 # async def get_current_user_or_none(request: Request):
 #     user = getattr(request.state, "user", None)
 #     print(user)

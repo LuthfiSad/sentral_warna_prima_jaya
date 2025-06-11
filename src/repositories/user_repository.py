@@ -47,13 +47,28 @@ class UserRepository:
         # Apply search filter
         if search:
             search_filter = f"%{search}%"
-            query = query.outerjoin(Employee).filter(
-                or_(
-                    User.username.ilike(search_filter),
-                    User.email.ilike(search_filter),
-                    Employee.name.ilike(search_filter)
-                )
-            )
+            search_lower = search.lower()
+            # query = query.outerjoin(Employee).filter(
+            #     or_(
+            #         User.username.ilike(search_filter),
+            #         User.email.ilike(search_filter),
+            #         User.is_admin.is_(search_filter == "admin"),
+            #         Employee.name.ilike(search_filter)
+            #     )
+            # )
+            
+            filters = [
+                User.username.ilike(search_filter),
+                User.email.ilike(search_filter),
+                Employee.name.ilike(search_filter)
+            ]
+
+            if search_lower == "admin":
+                filters.append(User.is_admin.is_(True))
+            elif search_lower in ["karyawan", "employee"]:
+                filters.append(User.is_admin.is_(False))
+
+            query = query.outerjoin(Employee).filter(or_(*filters))
         
         # Get total count
         total_data = query.count()

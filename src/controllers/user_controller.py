@@ -22,13 +22,13 @@ class UserController:
         result = UserService.authenticate_user(db, user_data.login, user_data.password)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Login successful", {
             "access_token": result["access_token"],
-            "user": {
-                "id": result["user"].id,
-                "username": result["user"].username,
-                "email": result["user"].email,
-                "is_admin": result["user"].is_admin,
-                "employee": result["user"].employee
-            }
+            # "user": {
+            #     "id": result["user"].id,
+            #     "username": result["user"].username,
+            #     "email": result["user"].email,
+            #     "is_admin": result["user"].is_admin,
+            #     "employee": result["user"].employee
+            # }
         })
         
     @staticmethod

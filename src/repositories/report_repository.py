@@ -1,17 +1,18 @@
 # src/repositories/report_repository.py
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import date
 from typing import Optional
+from src.models.employee_model import Employee
 from src.models.report_model import Report, ReportStatus
 
 class ReportRepository:
     @staticmethod
-    def create(db: Session, report_date: date, name: str, report: str, 
+    def create(db: Session, report_date: date, employee_id: int, report: str, 
               image_url: Optional[str], status: ReportStatus) -> Report:
         new_report = Report(
             date=report_date,
-            name=name,
+            employee_id=employee_id,
             report=report,
             image_url=image_url,
             status=status
@@ -23,20 +24,33 @@ class ReportRepository:
 
     @staticmethod
     def get_by_id(db: Session, report_id: int) -> Optional[Report]:
-        return db.query(Report).filter(Report.id == report_id).first()
+        return db.query(Report).options(joinedload(Report.employee)).filter(Report.id == report_id).first()
       
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
-        query = db.query(Report)
+    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, karyawan_id: Optional[str] = None):
+        query = db.query(Report).options(joinedload(Report.employee))
         
+        if karyawan_id:    
+            query = query.filter(Report.employee_id == karyawan_id)
+            
         # Apply search filter
         if search:
             search_filter = f"%{search}%"
-            query = query.filter(
+            search_lower = search.lower()
+
+            status_conditions = []
+            if search_lower in ["pending", "menunggu"]:
+                status_conditions.append(Report.status == ReportStatus.PENDING)
+            elif search_lower in ["approved", "disetujui", "approve"]:
+                status_conditions.append(Report.status == ReportStatus.APPROVED)
+            elif search_lower in ["rejected", "ditolak", "reject"]:
+                status_conditions.append(Report.status == ReportStatus.REJECTED)
+
+            query = query.join(Employee).filter(
                 or_(
-                    Report.name.ilike(search_filter),
+                    Employee.name.ilike(search_filter),
                     Report.report.ilike(search_filter),
-                    Report.status.ilike(search_filter)
+                    *status_conditions  # spread status conditions here
                 )
             )
         
@@ -49,7 +63,6 @@ class ReportRepository:
         
         # Get paginated data
         reports = query.order_by(Report.created_at.desc()).offset(offset).limit(per_page).all()
-        
         return {
             "reports": reports,
             "meta": {
@@ -63,7 +76,7 @@ class ReportRepository:
     # Tambahan method untuk export excel di ReportRepository
     @staticmethod
     def get_all_for_export(db: Session, start_date: Optional[date] = None, end_date: Optional[date] = None):
-        query = db.query(Report)
+        query = db.query(Report).options(joinedload(Report.employee))
         
         # Apply date filters if provided
         if start_date:
