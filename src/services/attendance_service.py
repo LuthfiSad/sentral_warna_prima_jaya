@@ -1,11 +1,11 @@
 # src/services/attendance_service.py
 from sqlalchemy.orm import Session
 from datetime import datetime, date
-from typing import List, Optional
+from typing import Optional
 from src.services.employee_service import EmployeeService
 from src.services.location_service import LocationService
 from src.repositories.attendance_repository import AttendanceRepository
-from src.libs.supabase import delete_images_from_supabase, upload_image_to_supabase
+from src.libs.supabase import upload_image_to_supabase
 from src.utils.error import AppError
 from src.utils.message_code import MESSAGE_CODE
 
@@ -131,50 +131,15 @@ class AttendanceService:
     #     return AttendanceRepository.get_all(db, page, per_page, employee_id, start_date, end_date)
     
     @staticmethod
-    def get_all_attendance(db: Session, page: int = 1, per_page: int = 10, search: str = None, employee_id: int = None):
-        return AttendanceRepository.get_all(db, page, per_page, search, employee_id)
+    def get_all_attendance(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+        return AttendanceRepository.get_all(db, page, per_page, search)
 
     @staticmethod
-    def get_attendance_by_id(db: Session, attendance_id: int, employee_id: int = None):
+    def get_attendance_by_id(db: Session, attendance_id: int):
         """
-        Get attendance by ID with optional employee filter
+        Get attendance by ID
         """
-        attendance = AttendanceRepository.get_by_id(db, attendance_id, employee_id)
+        attendance = AttendanceRepository.get_by_id(db, attendance_id)
         if not attendance:
             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Attendance record not found")
         return attendance
-
-    @staticmethod
-    async def delete_multiple_attendances(db: Session, attendance_ids: List[int]):
-        """
-        Delete multiple attendance records and their images from Supabase
-        """
-        try:
-            # Get attendance records to delete
-            attendances = AttendanceRepository.get_by_ids(db, attendance_ids)
-            
-            if not attendances:
-                raise AppError(404, MESSAGE_CODE.NOT_FOUND, "No attendance records found")
-            
-            # Collect image URLs to delete from Supabase
-            image_urls = []
-            for attendance in attendances:
-                if attendance.checkin_image_url:
-                    image_urls.append(attendance.checkin_image_url)
-                if attendance.checkout_image_url:
-                    image_urls.append(attendance.checkout_image_url)
-            
-            # Delete from database first
-            deleted_count = AttendanceRepository.delete_multiple(db, attendance_ids)
-            
-            # Delete images from Supabase storage
-            if image_urls:
-                await delete_images_from_supabase(image_urls)
-            
-            return {
-                "deleted_count": deleted_count,
-                "deleted_images": len(image_urls)
-            }
-            
-        except AppError:
-            raise
