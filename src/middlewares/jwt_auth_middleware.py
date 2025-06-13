@@ -10,9 +10,12 @@ from src.utils.response import handle_response
 
 def is_excluded_path(path: str) -> bool:
     EXCLUDED_PATHS = [
-        "/users/auth/register", 
-        "/users/auth/login", 
-        "/",
+        "/api/users/auth/register", 
+        "/api/users/auth/login", 
+        "/api/",
+        "/api/employees/verify",
+        "/api/attendances/checkin",
+        "/api/attendances/checkout",
     ]
     return path in EXCLUDED_PATHS
 

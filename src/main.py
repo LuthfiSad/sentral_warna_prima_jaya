@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import APIRouter, FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 
@@ -26,6 +26,7 @@ def read_root():
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://192.168.0.103"
     # Untuk production, ganti dengan domain yang sebenarnya
     # "https://yourdomain.com"
 ]
@@ -44,11 +45,22 @@ app.add_middleware(
 # ✅ Pastikan JWTAuthMiddleware berada setelah CORSMiddleware
 app.add_middleware(JWTAuthMiddleware) 
 
-# Include routes
-app.include_router(user_routes.router, prefix="/users", tags=["Authentication"])
-app.include_router(employee_routes.router, prefix="/employees", tags=["Employees"])
-app.include_router(attendance_routes.router, prefix="/attendances", tags=["Attendances"])
-app.include_router(report_routes.router, prefix="/reports", tags=["Reports"])
+# # Include routes
+# app.include_router(user_routes.router, prefix="/users", tags=["Authentication"])
+# app.include_router(employee_routes.router, prefix="/employees", tags=["Employees"])
+# app.include_router(attendance_routes.router, prefix="/attendances", tags=["Attendances"])
+# app.include_router(report_routes.router, prefix="/reports", tags=["Reports"])
+
+api_router = APIRouter(prefix="/api")
+
+# Tambahkan semua router ke api_router
+api_router.include_router(user_routes.router, prefix="/users", tags=["Authentication"])
+api_router.include_router(employee_routes.router, prefix="/employees", tags=["Employees"])
+api_router.include_router(attendance_routes.router, prefix="/attendances", tags=["Attendances"])
+api_router.include_router(report_routes.router, prefix="/reports", tags=["Reports"])
+
+# Masukkan api_router ke aplikasi FastAPI
+app.include_router(api_router)
 
 # Custom error handlers
 app.add_exception_handler(AppError, app_error_handler)

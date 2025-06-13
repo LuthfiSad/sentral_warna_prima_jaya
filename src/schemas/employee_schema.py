@@ -2,6 +2,8 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import date
 from typing import Optional
 
+from src.schemas.attendance_schema import AttendanceResponseSchema
+
 class EmployeeCreateSchema(BaseModel):
     name: str = Field(..., min_length=2, max_length=255)
     email: EmailStr
@@ -24,6 +26,18 @@ class EmployeeResponseSchema(BaseModel):
     divisi: str
     address: str
     image_url: Optional[str] = None
+    # created_at: str
+    # updated_at: Optional[str] = None
+
+class EmployeeUserResponseSchema(BaseModel):
+    id: int
+    name: str
+    email: str
+    date_of_birth: date
+    divisi: str
+    address: str
+    image_url: Optional[str] = None
+    attendance_today: Optional[AttendanceResponseSchema] = None
     # created_at: str
     # updated_at: Optional[str] = None
 

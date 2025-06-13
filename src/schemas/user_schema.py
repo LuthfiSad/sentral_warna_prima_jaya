@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
-from src.schemas.employee_schema import EmployeeResponseSchema
+from src.schemas.employee_schema import EmployeeUserResponseSchema
 
 class UserRegisterSchema(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
@@ -34,7 +34,7 @@ class UserResponseSchema(BaseModel):
     email: str
     is_admin: bool
     karyawan_id: Optional[int]
-    employee: Optional[EmployeeResponseSchema] = None
+    employee: Optional[EmployeeUserResponseSchema] = None
 
     class Config:
         from_attributes = True

@@ -2,10 +2,10 @@
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy.orm import Session
 from datetime import date
-from typing import Optional
+from typing import List, Optional
 from src.controllers.attendance_controller import AttendanceController
 from src.middlewares.catch_wrapper import catch_exceptions
-from src.middlewares.admin_middleware import require_admin
+from src.middlewares.admin_middleware import get_current_user, require_admin
 from src.config.database import get_db
 
 router = APIRouter()
@@ -39,15 +39,46 @@ async def get_all_attendance(
     per_page: int = Query(10, ge=1, le=100),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_user)
 ):
-    return await AttendanceController.get_all_attendance(page, per_page, search, db)
+    return await AttendanceController.get_all_attendance(page, per_page, search, db, current_user)
 
 @router.get("/{attendance_id}")
 @catch_exceptions
 async def get_attendance(
     attendance_id: int,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)  # Change to require_auth
+):
+    return await AttendanceController.get_attendance(attendance_id, db, current_user)
+
+# New delete route
+@router.delete("/")
+@catch_exceptions
+async def delete_attendances(
+    attendance_ids: List[int],
+    db: Session = Depends(get_db),
     current_user: dict = Depends(require_admin)
 ):
-    return await AttendanceController.get_attendance(attendance_id, db)
+    return await AttendanceController.delete_attendances(attendance_ids, db)
+
+# @router.get("/")
+# @catch_exceptions
+# async def get_all_attendance(
+#     page: int = Query(1, ge=1),
+#     per_page: int = Query(10, ge=1, le=100),
+#     search: Optional[str] = Query(None),
+#     db: Session = Depends(get_db),
+#     current_user: dict = Depends(require_admin)
+# ):
+    
+#     return await AttendanceController.get_all_attendance(page, per_page, search, db)
+
+# @router.get("/{attendance_id}")
+# @catch_exceptions
+# async def get_attendance(
+#     attendance_id: int,
+#     db: Session = Depends(get_db),
+#     current_user: dict = Depends(require_admin)
+# ):
+#     return await AttendanceController.get_attendance(attendance_id, db)

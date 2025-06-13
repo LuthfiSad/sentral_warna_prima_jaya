@@ -50,21 +50,25 @@ class AttendanceRepository:
             db.refresh(attendance)
         return attendance
 
-    @staticmethod
-    def get_by_id(db: Session, attendance_id: int) -> Optional[Attendance]:
-        return db.query(Attendance).filter(Attendance.id == attendance_id).first()
+    # @staticmethod
+    # def get_by_id(db: Session, attendance_id: int) -> Optional[Attendance]:
+    #     return db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
     @staticmethod
     def get_by_employee_and_date(db: Session, employee_id: int, attendance_date: date) -> Optional[Attendance]:
         return db.query(Attendance).filter(
             and_(Attendance.employee_id == employee_id, Attendance.date == attendance_date)
         ).first()
-
+        
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, employee_id: int = None):
         query = db.query(Attendance).join(Employee)
         
-        # Apply search filter (searching in employee data)
+        # Apply employee filter if provided (for non-admin users)
+        if employee_id:
+            query = query.filter(Attendance.employee_id == employee_id)
+        
+        # Apply search filter
         if search:
             search_filter = f"%{search}%"
             query = query.filter(
@@ -82,7 +86,7 @@ class AttendanceRepository:
         total_pages = (total_data + per_page - 1) // per_page
         offset = (page - 1) * per_page
         
-        # Get paginated data with employee relationship
+        # Get paginated data
         attendances = query.offset(offset).limit(per_page).all()
         
         return {
@@ -94,6 +98,61 @@ class AttendanceRepository:
                 "totalData": total_data
             }
         }
+
+    @staticmethod
+    def get_by_id(db: Session, attendance_id: int, employee_id: int = None) -> Optional[Attendance]:
+        query = db.query(Attendance).filter(Attendance.id == attendance_id)
+        
+        # Add employee filter if provided (for non-admin users)
+        if employee_id:
+            query = query.filter(Attendance.employee_id == employee_id)
+        
+        return query.first()
+
+    @staticmethod
+    def get_by_ids(db: Session, attendance_ids: List[int]) -> List[Attendance]:
+        return db.query(Attendance).filter(Attendance.id.in_(attendance_ids)).all()
+
+    @staticmethod
+    def delete_multiple(db: Session, attendance_ids: List[int]) -> int:
+        deleted_count = db.query(Attendance).filter(Attendance.id.in_(attendance_ids)).delete(synchronize_session=False)
+        db.commit()
+        return deleted_count
+
+    # @staticmethod
+    # def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+    #     query = db.query(Attendance).join(Employee)
+        
+    #     # Apply search filter (searching in employee data)
+    #     if search:
+    #         search_filter = f"%{search}%"
+    #         query = query.filter(
+    #             or_(
+    #                 Employee.name.ilike(search_filter),
+    #                 Employee.email.ilike(search_filter),
+    #                 Employee.divisi.ilike(search_filter)
+    #             )
+    #         )
+        
+    #     # Get total count
+    #     total_data = query.count()
+        
+    #     # Calculate pagination
+    #     total_pages = (total_data + per_page - 1) // per_page
+    #     offset = (page - 1) * per_page
+        
+    #     # Get paginated data with employee relationship
+    #     attendances = query.offset(offset).limit(per_page).all()
+        
+    #     return {
+    #         "attendances": attendances,
+    #         "meta": {
+    #             "page": page,
+    #             "perPage": per_page,
+    #             "totalPages": total_pages,
+    #             "totalData": total_data
+    #         }
+    #     }
     
     # @staticmethod
     # def get_all(db: Session, page: int = 1, per_page: int = 10, 

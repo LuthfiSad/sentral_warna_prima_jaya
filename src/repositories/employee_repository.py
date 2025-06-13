@@ -1,5 +1,7 @@
+from datetime import date
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from src.models.attendance_model import Attendance
 from src.models.employee_model import Employee
 from typing import Optional, List
 
@@ -45,12 +47,39 @@ class EmployeeRepository:
         
     @staticmethod
     def get_all_with_face_data(db: Session) -> List[Employee]:
-        """Get all employees that have face encoding data"""
-        return db.query(Employee).filter(Employee.face_encoding.isnot(None)).all()
+        """Get all employees that have face encoding data, with today's attendance"""
+        employees = db.query(Employee).filter(Employee.face_encoding.isnot(None)).all()
+        today = date.today()
+
+        # Inject attendance_today untuk masing-masing employee
+        for emp in employees:
+            attendance = (
+                db.query(Attendance)
+                .filter(
+                    Attendance.employee_id == emp.id,
+                    Attendance.date == today
+                )
+                .first()
+            )
+            emp.attendance_today = attendance
+
+        return employees
+
 
     @staticmethod
     def get_by_id(db: Session, employee_id: int) -> Optional[Employee]:
-        return db.query(Employee).filter(Employee.id == employee_id).first()
+        employee = db.query(Employee).filter(Employee.id == employee_id).first()
+        today = date.today()
+        today_attendance = (
+            db.query(Attendance)
+            .filter(
+                Attendance.employee_id == employee.id,
+                Attendance.date == today
+            )
+            .first()
+        )
+        employee.attendance_today = today_attendance
+        return employee
 
     @staticmethod
     def get_by_email(db: Session, email: str) -> Optional[Employee]:

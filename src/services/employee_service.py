@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from sqlalchemy.orm import Session
 from src.repositories.employee_repository import EmployeeRepository
-from src.libs.supabase import upload_image_to_supabase
+from src.libs.supabase import delete_images_from_supabase, upload_image_to_supabase
 from src.utils.error import AppError
 from src.utils.message_code import MESSAGE_CODE
 from typing import Optional, List
@@ -70,7 +70,8 @@ class EmployeeService:
         image_url = employee.image_url
         face_encoding = employee.face_encoding
         if image_data:
-            face_encoding = await EmployeeService.extract_face_encoding(image_data)
+            await delete_images_from_supabase([image_url])
+            face_encoding = EmployeeService.extract_face_encoding(image_data)
             if isinstance(face_encoding, AppError):
                 raise face_encoding
             image_url = await upload_image_to_supabase(image_data)
@@ -89,6 +90,10 @@ class EmployeeService:
         employee = EmployeeRepository.get_by_id(db, employee_id)
         if not employee:
             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Employee not found")
+        
+        #  delete image from supabase
+        if employee.image_url:
+            delete_images_from_supabase([employee.image_url])
 
         # Check if employee has associated user
         if hasattr(employee, 'user') and employee.user:
@@ -162,7 +167,8 @@ class EmployeeService:
                     "email": best_match.email,
                     "divisi": best_match.divisi,
                     "image_url": best_match.image_url,
-                    "confidence": 1 - (best_distance / 1.0)  # Convert distance to confidence score
+                    "confidence": 1 - (best_distance / 1.0),  # Convert distance to confidence score
+                    "attendance_today": best_match.attendance_today
                 }
             else:
                 raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Face not recognized")

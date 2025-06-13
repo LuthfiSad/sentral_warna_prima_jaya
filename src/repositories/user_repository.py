@@ -1,6 +1,8 @@
+from datetime import date
 from pydantic import TypeAdapter
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
+from src.models.attendance_model import Attendance
 from src.models.employee_model import Employee
 from src.models.user_model import User
 from typing import Optional
@@ -95,6 +97,21 @@ class UserRepository:
     @staticmethod
     def get_by_id(db: Session, user_id: int) -> Optional[User]:
         user = db.query(User).options(joinedload(User.employee)).filter(User.id == user_id).first()
+
+        if user and user.employee:
+            # Cari attendance hari ini untuk employee tersebut
+            today = date.today()
+            today_attendance = (
+                db.query(Attendance)
+                .filter(
+                    Attendance.employee_id == user.employee.id,
+                    Attendance.date == today
+                )
+                .first()
+            )
+
+            # Inject attendance ke dalam employee
+            user.employee.attendance_today = today_attendance
         return UserResponseSchema.model_validate(user) if user else None
     
     @staticmethod

@@ -2,7 +2,7 @@
 from fastapi import Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from datetime import date
-from typing import Optional
+from typing import List, Optional
 from src.services.attendance_service import AttendanceService
 from src.utils.response import handle_response
 from src.utils.message_code import MESSAGE_CODE
@@ -38,9 +38,15 @@ class AttendanceController:
         page: int = 1,
         per_page: int = 10,
         search: Optional[str] = None,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user: dict = None  # Add this parameter
     ):
-        result = AttendanceService.get_all_attendance(db, page, per_page, search)
+        # Filter by employee_id if not admin
+        employee_id = None
+        if not current_user.get("is_admin", False):
+            employee_id = current_user.get("employee_id")  # atau sesuai nama field di JWT
+        
+        result = AttendanceService.get_all_attendance(db, page, per_page, search, employee_id)
         return handle_response(
             200,
             MESSAGE_CODE.SUCCESS,
@@ -48,17 +54,37 @@ class AttendanceController:
             result["attendances"],
             meta=result["meta"]
         )
-    
+
+    @staticmethod
+    async def get_attendance(
+        attendance_id: int, 
+        db: Session = Depends(get_db),
+        current_user: dict = None  # Add this parameter
+    ):
+        # Filter by employee_id if not admin
+        employee_id = None
+        if not current_user.get("is_admin", False):
+            employee_id = current_user.get("employee_id")
+            
+        attendance = AttendanceService.get_attendance_by_id(db, attendance_id, employee_id)
+        return handle_response(200, MESSAGE_CODE.SUCCESS, "Attendance record retrieved successfully", attendance)
+
+    @staticmethod
+    async def delete_attendances(
+        attendance_ids: List[int],
+        db: Session = Depends(get_db)
+    ):
+        result = await AttendanceService.delete_multiple_attendances(db, attendance_ids)
+        return handle_response(200, MESSAGE_CODE.SUCCESS, f"Successfully deleted {result['deleted_count']} attendance records", result)
+
     # @staticmethod
     # async def get_all_attendance(
     #     page: int = 1,
     #     per_page: int = 10,
-    #     employee_id: Optional[int] = None,
-    #     start_date: Optional[date] = None,
-    #     end_date: Optional[date] = None,
+    #     search: Optional[str] = None,
     #     db: Session = Depends(get_db)
     # ):
-    #     result = AttendanceService.get_all_attendance(db, page, per_page, employee_id, start_date, end_date)
+    #     result = AttendanceService.get_all_attendance(db, page, per_page, search)
     #     return handle_response(
     #         200,
     #         MESSAGE_CODE.SUCCESS,
@@ -66,8 +92,26 @@ class AttendanceController:
     #         result["attendances"],
     #         meta=result["meta"]
     #     )
+    
+    # # @staticmethod
+    # # async def get_all_attendance(
+    # #     page: int = 1,
+    # #     per_page: int = 10,
+    # #     employee_id: Optional[int] = None,
+    # #     start_date: Optional[date] = None,
+    # #     end_date: Optional[date] = None,
+    # #     db: Session = Depends(get_db)
+    # # ):
+    # #     result = AttendanceService.get_all_attendance(db, page, per_page, employee_id, start_date, end_date)
+    # #     return handle_response(
+    # #         200,
+    # #         MESSAGE_CODE.SUCCESS,
+    # #         "Attendance records retrieved successfully",
+    # #         result["attendances"],
+    # #         meta=result["meta"]
+    # #     )
 
-    @staticmethod
-    async def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
-        attendance = AttendanceService.get_attendance_by_id(db, attendance_id)
-        return handle_response(200, MESSAGE_CODE.SUCCESS, "Attendance record retrieved successfully", attendance)
+    # @staticmethod
+    # async def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
+    #     attendance = AttendanceService.get_attendance_by_id(db, attendance_id)
+    #     return handle_response(200, MESSAGE_CODE.SUCCESS, "Attendance record retrieved successfully", attendance)
