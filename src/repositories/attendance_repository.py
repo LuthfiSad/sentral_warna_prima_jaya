@@ -5,6 +5,7 @@ from datetime import date, datetime
 from typing import Optional, List
 from src.models.attendance_model import Attendance
 from src.models.employee_model import Employee
+from sqlalchemy.orm import joinedload
 
 class AttendanceRepository:
     @staticmethod
@@ -62,7 +63,7 @@ class AttendanceRepository:
         
     @staticmethod
     def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, employee_id: int = None):
-        query = db.query(Attendance).join(Employee)
+        query = db.query(Attendance).options(joinedload(Attendance.employee)).join(Employee)
         
         # Apply employee filter if provided (for non-admin users)
         if employee_id:
@@ -101,7 +102,7 @@ class AttendanceRepository:
 
     @staticmethod
     def get_by_id(db: Session, attendance_id: int, employee_id: int = None) -> Optional[Attendance]:
-        query = db.query(Attendance).filter(Attendance.id == attendance_id)
+        query = db.query(Attendance).options(joinedload(Attendance.employee)).join(Employee).filter(Attendance.id == attendance_id)
         
         # Add employee filter if provided (for non-admin users)
         if employee_id:

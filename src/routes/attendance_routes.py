@@ -7,6 +7,7 @@ from src.controllers.attendance_controller import AttendanceController
 from src.middlewares.catch_wrapper import catch_exceptions
 from src.middlewares.admin_middleware import get_current_user, require_admin
 from src.config.database import get_db
+from src.schemas.attendance_schema import AttendanceDeleteRequest
 
 router = APIRouter()
 
@@ -53,14 +54,15 @@ async def get_attendance(
     return await AttendanceController.get_attendance(attendance_id, db, current_user)
 
 # New delete route
-@router.delete("/")
+@router.post("/")
 @catch_exceptions
 async def delete_attendances(
-    attendance_ids: List[int],
+    body: AttendanceDeleteRequest,
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_admin)
 ):
-    return await AttendanceController.delete_attendances(attendance_ids, db)
+    print(body.attendance_ids)
+    return await AttendanceController.delete_attendances(body.attendance_ids, db)
 
 # @router.get("/")
 # @catch_exceptions

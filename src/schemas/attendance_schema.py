@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 
 class AttendanceResponseSchema(BaseModel):
     id: int
@@ -11,3 +11,6 @@ class AttendanceResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        
+class AttendanceDeleteRequest(BaseModel):
+    attendance_ids: List[int]
