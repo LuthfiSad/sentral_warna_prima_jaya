@@ -1,4 +1,5 @@
 # main.py
+import os
 from fastapi import APIRouter, FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -99,4 +100,4 @@ async def starlette_http_exception_handler(request: Request, exc: StarletteHTTPE
     )
 
 if __name__ == "__main__":
-    uvicorn.run("src.main:app", host="127.0.0.1", port=int(PORT), reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=True)
