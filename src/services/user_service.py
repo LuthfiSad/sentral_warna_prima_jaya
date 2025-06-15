@@ -29,6 +29,7 @@ class UserService:
         # employee = None
         # if not is_admin:
         employee = EmployeeRepository.get_by_email(db, email)
+        employee_id = employee.id if employee else None
         if not employee and not is_admin:
             raise AppError(400, MESSAGE_CODE.BAD_REQUEST, 
                         "Email not found in employee database. Please contact admin.")
@@ -42,7 +43,7 @@ class UserService:
 
         hashed_password = hash_password(password)
         # return
-        user = UserRepository.create(db, username, email, hashed_password, employee.id, is_admin)
+        user = UserRepository.create(db, username, email, hashed_password, employee_id, is_admin)
         return user
 
     @staticmethod
