@@ -18,7 +18,7 @@ Aplikasi ini dibangun menggunakan:
 
 ### 1. Clone Repository
 ```sh
-git clone https://github.com/luthfisad/face-id-detector-python.git
+git clone https://github.com/{username}/face-id-detector-python.git
 cd face-id-detector-python
 ```
 
@@ -62,7 +62,7 @@ uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
 - **POST /face/verify** → Verifikasi wajah pengguna dengan JWT authentication.
 
 ### 3. Restricted Access
-- **POST /restricted** → Endpoint yang hanya dapat diakses oleh user dengan username "luthfi".
+- **POST /restricted** → Endpoint yang hanya dapat diakses oleh user dengan username.
 
 ## Struktur Direktori
 ```
@@ -83,10 +83,4 @@ uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
  └── ...
 
 ```
-
-## Kontributor
-- **Muhamad Luthfi Sadli** - Developer utama
-
-## Lisensi
-Aplikasi ini dirilis di bawah lisensi MIT. Lihat [LICENSE](LICENSE) untuk detail lebih lanjut.
 

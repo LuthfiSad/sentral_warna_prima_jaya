@@ -8,25 +8,25 @@ def is_excluded_path(path: str) -> bool:
     EXCLUDED_PATHS = ["/users/auth/register", "/users/auth/login"]
     return path in EXCLUDED_PATHS
 
-class CheckLuthfiMiddleware(BaseHTTPMiddleware):
+class CheckUsernameMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if is_excluded_path(request.url.path):
             return await call_next(request)
           
         user = getattr(request.state, "user", None)
-        if not user or user.get("username") != "luthfi":
+        if not user or user.get("username") != "username":
           return JSONResponse(
                 status_code=403,
-                content=handle_response(403, MESSAGE_CODE.FORBIDDEN, "Access restricted to user 'luthfi' only")
+                content=handle_response(403, MESSAGE_CODE.FORBIDDEN, "Access restricted to user 'username' only")
             )
         return await call_next(request)
 
 
-async def check_luthfi_user(request: Request):
+async def check_username_user(request: Request):
     user = getattr(request.state, "user", None)
-    if not user or user.get("username") != "luthfi":
+    if not user or user.get("username") != "username":
         return JSONResponse(
             status_code=403,
-            content=handle_response(403, MESSAGE_CODE.FORBIDDEN, "Access restricted to user 'luthfi' only")
+            content=handle_response(403, MESSAGE_CODE.FORBIDDEN, "Access restricted to user 'username' only")
         )
     return user
