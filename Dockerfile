@@ -1,6 +1,6 @@
-FROM python:3.10-slim
+FROM python:3.12.4
 
-# Install OS-level build dependencies
+# Install OS-level dependencies (dlib needs full compiler + math libs)
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -12,13 +12,10 @@ RUN apt-get update && apt-get install -y \
     && cmake --version \
     && rm -rf /var/lib/apt/lists/*
 
-# Buat folder kerja
 WORKDIR /app
 COPY . .
 
-# Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Jalankan app
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
