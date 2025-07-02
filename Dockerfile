@@ -1,17 +1,17 @@
 FROM python:3.10-slim
 
-# Install system dependencies
+# Install OS-level build dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
+    python3-dev \
     libboost-all-dev \
     libopenblas-dev \
     liblapack-dev \
     libx11-dev \
-    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy source code
+# Buat folder kerja
 WORKDIR /app
 COPY . .
 
@@ -19,8 +19,5 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port Flask is running on
-EXPOSE 5000
-
-# Run with gunicorn
+# Jalankan app
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
