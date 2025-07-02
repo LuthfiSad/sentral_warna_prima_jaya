@@ -24,17 +24,17 @@ def read_root():
 
 # --- Konfigurasi CORS di sini ---
 # ✅ Update origins to be more permissive and include both HTTP and potential HTTPS
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://192.168.0.103"
-    # Untuk production, ganti dengan domain yang sebenarnya
-    # "https://yourdomain.com"
-]
+# origins = [
+#     "http://localhost:5173",
+#     "http://127.0.0.1:5173",
+#     "https://192.168.0.103"
+#     # Untuk production, ganti dengan domain yang sebenarnya
+#     # "https://yourdomain.com"
+# ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # ✅ Atau gunakan ["*"] untuk development
+    allow_origins=["*"],  # ✅ Atau gunakan ["*"] untuk development
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],  # ✅ Tambahkan lebih banyak methods
     allow_headers=["*"],  # ✅ Allow all headers
