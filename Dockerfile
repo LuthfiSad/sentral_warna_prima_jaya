@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libopenblas-dev \
     liblapack-dev \
     libx11-dev \
+    && cmake --version \
     && rm -rf /var/lib/apt/lists/*
 
 # Buat folder kerja
