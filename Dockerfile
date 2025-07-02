@@ -1,6 +1,6 @@
-FROM python:3.12.4
+FROM python:3.10-bullseye
 
-# Install OS-level dependencies (dlib needs full compiler + math libs)
+# Install dependencies for dlib
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     && cmake --version \
     && rm -rf /var/lib/apt/lists/*
 
+# App setup
 WORKDIR /app
 COPY . .
 
