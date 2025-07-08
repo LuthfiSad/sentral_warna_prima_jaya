@@ -8,12 +8,26 @@ from src.models.report_model import Report, ReportStatus
 
 class ReportRepository:
     @staticmethod
-    def create(db: Session, report_date: date, employee_id: int, report: str, 
-              image_url: Optional[str], status: ReportStatus) -> Report:
+    def create(
+        db: Session, 
+        report_date: date, 
+        employee_id: int, 
+        report: str, 
+        customer_name: str,
+        vehicle_type: str,
+        total_repairs: int,
+        cost: float,
+        image_url: Optional[str], 
+        status: ReportStatus
+    ) -> Report:
         new_report = Report(
             date=report_date,
             employee_id=employee_id,
             report=report,
+            customer_name=customer_name,
+            vehicle_type=vehicle_type,
+            total_repairs=total_repairs,
+            cost=cost,
             image_url=image_url,
             status=status
         )
@@ -50,7 +64,9 @@ class ReportRepository:
                 or_(
                     Employee.name.ilike(search_filter),
                     Report.report.ilike(search_filter),
-                    *status_conditions  # spread status conditions here
+                    Report.customer_name.ilike(search_filter),
+                    Report.vehicle_type.ilike(search_filter),
+                    *status_conditions
                 )
             )
         
@@ -73,7 +89,6 @@ class ReportRepository:
             }
         }
 
-    # Tambahan method untuk export excel di ReportRepository
     @staticmethod
     def get_all_for_export(db: Session, start_date: Optional[date] = None, end_date: Optional[date] = None):
         query = db.query(Report).options(joinedload(Report.employee))
@@ -87,50 +102,6 @@ class ReportRepository:
         
         # Get all data without pagination for export
         return query.order_by(Report.created_at.desc()).all()
-
-    # @staticmethod
-    # def get_all(db: Session, page: int = 1, per_page: int = 10,
-    #            status: Optional[str] = None, name: Optional[str] = None,
-    #            start_date: Optional[date] = None, end_date: Optional[date] = None):
-    #     query = db.query(Report)
-        
-    #     # Apply filters
-    #     if status:
-    #         try:
-    #             status_enum = ReportStatus(status.lower())
-    #             query = query.filter(Report.status == status_enum)
-    #         except ValueError:
-    #             pass  # Invalid status, ignore filter
-        
-    #     if name:
-    #         search_filter = f"%{name}%"
-    #         query = query.filter(Report.name.ilike(search_filter))
-        
-    #     if start_date:
-    #         query = query.filter(Report.date >= start_date)
-            
-    #     if end_date:
-    #         query = query.filter(Report.date <= end_date)
-        
-    #     # Get total count
-    #     total_data = query.count()
-        
-    #     # Calculate pagination
-    #     total_pages = (total_data + per_page - 1) // per_page
-    #     offset = (page - 1) * per_page
-        
-    #     # Get paginated data
-    #     reports = query.order_by(Report.created_at.desc()).offset(offset).limit(per_page).all()
-        
-    #     return {
-    #         "reports": reports,
-    #         "meta": {
-    #             "page": page,
-    #             "perPage": per_page,
-    #             "totalPages": total_pages,
-    #             "totalData": total_data
-    #         }
-    #     }
 
     @staticmethod
     def update(db: Session, report_id: int, **kwargs) -> Optional[Report]:

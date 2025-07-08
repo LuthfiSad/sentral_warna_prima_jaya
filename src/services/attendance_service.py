@@ -131,15 +131,15 @@ class AttendanceService:
     #     return AttendanceRepository.get_all(db, page, per_page, employee_id, start_date, end_date)
     
     @staticmethod
-    def get_all_attendance(db: Session, page: int = 1, per_page: int = 10, search: str = None):
-        return AttendanceRepository.get_all(db, page, per_page, search)
+    def get_all_attendance(db: Session, page: int = 1, per_page: int = 10, search: str = None, employee_id: Optional[int] = None):
+        return AttendanceRepository.get_all(db, page, per_page, search, employee_id)
 
     @staticmethod
-    def get_attendance_by_id(db: Session, attendance_id: int):
+    def get_attendance_by_id(db: Session, attendance_id: int, employee_id: int = None):
         """
         Get attendance by ID
         """
-        attendance = AttendanceRepository.get_by_id(db, attendance_id)
+        attendance = AttendanceRepository.get_by_id(db, attendance_id, employee_id)
         if not attendance:
             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Attendance record not found")
         return attendance

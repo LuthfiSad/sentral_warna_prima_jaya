@@ -17,6 +17,10 @@ class ReportController:
         date: date = Form(...),
         employee_id: int = Form(...),
         report: str = Form(...),
+        customer_name: str = Form(...),
+        vehicle_type: str = Form(...),
+        total_repairs: int = Form(...),
+        cost: float = Form(...),
         image: Optional[UploadFile] = File(None),
         db: Session = Depends(get_db)
     ):
@@ -24,7 +28,10 @@ class ReportController:
         if image:
             image_data = await image.read()
         
-        result = await ReportService.create_report(db, date, employee_id, report, image_data)
+        result = await ReportService.create_report(
+            db, date, employee_id, report, customer_name, 
+            vehicle_type, total_repairs, cost, image_data
+        )
         return handle_response(201, MESSAGE_CODE.CREATED, "Report created successfully", result)
 
     @staticmethod
@@ -44,7 +51,6 @@ class ReportController:
             meta=result["meta"]
         )
 
-    # Tambahan method untuk export excel di ReportController
     @staticmethod
     async def export_reports_excel(
         start_date: Optional[date] = None,
@@ -60,6 +66,10 @@ class ReportController:
                 'Date': report.date.strftime('%Y-%m-%d'),
                 'Employee ID': report.employee_id,
                 'Employee Name': report.employee.name,
+                'Customer Name': report.customer_name,
+                'Vehicle Type': report.vehicle_type,
+                'Total Repairs': report.total_repairs,
+                'Cost': report.cost,
                 'Report': report.report,
                 'Status': report.status.value,
                 'Image URL': report.image_url or '',
@@ -88,26 +98,6 @@ class ReportController:
             headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
 
-    
-    # @staticmethod
-    # async def get_all_reports(
-    #     page: int = 1,
-    #     per_page: int = 10,
-    #     status: Optional[str] = None,
-    #     name: Optional[str] = None,
-    #     start_date: Optional[date] = None,
-    #     end_date: Optional[date] = None,
-    #     db: Session = Depends(get_db)
-    # ):
-    #     result = ReportService.get_all_reports(db, page, per_page, status, name, start_date, end_date)
-    #     return handle_response(
-    #         200,
-    #         MESSAGE_CODE.SUCCESS,
-    #         "Reports retrieved successfully",
-    #         result["reports"],
-    #         meta=result["meta"]
-    #     )
-
     @staticmethod
     async def get_report(report_id: int, db: Session = Depends(get_db)):
         report = ReportService.get_report_by_id(db, report_id)
@@ -117,8 +107,11 @@ class ReportController:
     async def update_report(
         report_id: int,
         date: Optional[date] = Form(None),
-        employee_id: Optional[int] = Form(None),
         report: Optional[str] = Form(None),
+        customer_name: Optional[str] = Form(None),
+        vehicle_type: Optional[str] = Form(None),
+        total_repairs: Optional[int] = Form(None),
+        cost: Optional[float] = Form(None),
         image: Optional[UploadFile] = File(None),
         db: Session = Depends(get_db)
     ):
@@ -126,23 +119,16 @@ class ReportController:
         if image:
             image_data = await image.read()
         
-        result = await ReportService.update_report(db, report_id, date, employee_id, report, image_data)
+        result = await ReportService.update_report(
+            db, report_id, date, report, customer_name, 
+            vehicle_type, total_repairs, cost, image_data
+        )
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report updated successfully", result)
 
     @staticmethod
     async def delete_report(report_id: int, db: Session = Depends(get_db)):
         result = ReportService.delete_report(db, report_id)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report deleted successfully", result)
-
-    # @staticmethod
-    # async def approve_report(report_id: int, db: Session = Depends(get_db)):
-    #     result = ReportService.approve_report(db, report_id)
-    #     return handle_response(200, MESSAGE_CODE.SUCCESS, "Report approved successfully", result)
-
-    # @staticmethod
-    # async def reject_report(report_id: int, db: Session = Depends(get_db)):
-    #     result = ReportService.reject_report(db, report_id)
-    #     return handle_response(200, MESSAGE_CODE.SUCCESS, "Report rejected successfully", result)
     
     @staticmethod
     async def update_report_status(report_id: int, status: str, db: Session = Depends(get_db)):
