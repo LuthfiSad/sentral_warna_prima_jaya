@@ -1,35 +1,32 @@
 # src/repositories/report_repository.py
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, joinedload
-from datetime import date
+from datetime import datetime
 from typing import Optional
-from src.models.employee_model import Employee
 from src.models.report_model import Report, ReportStatus
+from src.models.employee_model import Employee
+from src.models.transaction_model import Transaction
+from src.models.customer_model import Customer
 
 class ReportRepository:
     @staticmethod
-    def create(
+    def create_draft(
         db: Session, 
-        report_date: date, 
+        transaction_id: int,
         employee_id: int, 
-        report: str, 
-        customer_name: str,
-        vehicle_type: str,
-        total_repairs: int,
-        cost: float,
-        image_url: Optional[str], 
-        status: ReportStatus
+        description: str,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        image_url: Optional[str] = None
     ) -> Report:
         new_report = Report(
-            date=report_date,
+            transaction_id=transaction_id,
             employee_id=employee_id,
-            report=report,
-            customer_name=customer_name,
-            vehicle_type=vehicle_type,
-            total_repairs=total_repairs,
-            cost=cost,
+            description=description,
+            start_time=start_time,
+            end_time=end_time,
             image_url=image_url,
-            status=status
+            status=ReportStatus.DRAFT
         )
         db.add(new_report)
         db.commit()
@@ -38,35 +35,44 @@ class ReportRepository:
 
     @staticmethod
     def get_by_id(db: Session, report_id: int) -> Optional[Report]:
-        return db.query(Report).options(joinedload(Report.employee)).filter(Report.id == report_id).first()
-      
+        return db.query(Report).options(
+            joinedload(Report.employee),
+            joinedload(Report.approver),
+            joinedload(Report.transaction).joinedload(Transaction.customer)
+        ).filter(Report.id == report_id).first()
+
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, karyawan_id: Optional[str] = None):
-        query = db.query(Report).options(joinedload(Report.employee))
+    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, status: str = None, transaction_id: int = None, karyawan_id: Optional[int] = None):
+        query = db.query(Report).options(
+            joinedload(Report.employee),
+            joinedload(Report.transaction).joinedload(Transaction.customer)
+        )
         
-        if karyawan_id:    
+        # Filter by employee if not admin
+        if karyawan_id:
             query = query.filter(Report.employee_id == karyawan_id)
-            
+        
+        # Filter by transaction
+        if transaction_id:
+            query = query.filter(Report.transaction_id == transaction_id)
+        
+        # Filter by status
+        if status:
+            try:
+                status_enum = ReportStatus(status)
+                query = query.filter(Report.status == status_enum)
+            except ValueError:
+                pass  # Invalid status, ignore filter
+        
         # Apply search filter
         if search:
             search_filter = f"%{search}%"
-            search_lower = search.lower()
-
-            status_conditions = []
-            if search_lower in ["pending", "menunggu"]:
-                status_conditions.append(Report.status == ReportStatus.PENDING)
-            elif search_lower in ["approved", "disetujui", "approve"]:
-                status_conditions.append(Report.status == ReportStatus.APPROVED)
-            elif search_lower in ["rejected", "ditolak", "reject"]:
-                status_conditions.append(Report.status == ReportStatus.REJECTED)
-
-            query = query.join(Employee).filter(
+            query = query.join(Employee).join(Transaction).join(Customer).filter(
                 or_(
                     Employee.name.ilike(search_filter),
-                    Report.report.ilike(search_filter),
-                    Report.customer_name.ilike(search_filter),
-                    Report.vehicle_type.ilike(search_filter),
-                    *status_conditions
+                    Report.description.ilike(search_filter),
+                    Customer.name.ilike(search_filter),
+                    Customer.plate_number.ilike(search_filter)
                 )
             )
         
@@ -79,6 +85,7 @@ class ReportRepository:
         
         # Get paginated data
         reports = query.order_by(Report.created_at.desc()).offset(offset).limit(per_page).all()
+        
         return {
             "reports": reports,
             "meta": {
@@ -90,18 +97,56 @@ class ReportRepository:
         }
 
     @staticmethod
-    def get_all_for_export(db: Session, start_date: Optional[date] = None, end_date: Optional[date] = None):
-        query = db.query(Report).options(joinedload(Report.employee))
+    def get_pending_approval(db: Session, page: int = 1, per_page: int = 10):
+        query = db.query(Report).options(
+            joinedload(Report.employee),
+            joinedload(Report.transaction).joinedload(Transaction.customer)
+        ).filter(Report.status == ReportStatus.SUBMITTED)
         
-        # Apply date filters if provided
-        if start_date:
-            query = query.filter(Report.date >= start_date)
-            
-        if end_date:
-            query = query.filter(Report.date <= end_date)
+        # Get total count
+        total_data = query.count()
         
-        # Get all data without pagination for export
-        return query.order_by(Report.created_at.desc()).all()
+        # Calculate pagination
+        total_pages = (total_data + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+        
+        # Get paginated data
+        reports = query.order_by(Report.created_at.asc()).offset(offset).limit(per_page).all()
+        
+        return {
+            "reports": reports,
+            "meta": {
+                "page": page,
+                "perPage": per_page,
+                "totalPages": total_pages,
+                "totalData": total_data
+            }
+        }
+
+    @staticmethod
+    def get_by_transaction_id(db: Session, transaction_id: int):
+        return db.query(Report).options(
+            joinedload(Report.employee),
+            joinedload(Report.approver)
+        ).filter(Report.transaction_id == transaction_id).order_by(Report.created_at.desc()).all()
+
+    @staticmethod
+    def get_approved_reports_by_transaction(db: Session, transaction_id: int):
+        return db.query(Report).filter(
+            and_(
+                Report.transaction_id == transaction_id,
+                Report.status == ReportStatus.APPROVED
+            )
+        ).all()
+
+    @staticmethod
+    def get_pending_reports_by_transaction(db: Session, transaction_id: int):
+        return db.query(Report).filter(
+            and_(
+                Report.transaction_id == transaction_id,
+                Report.status.in_([ReportStatus.DRAFT, ReportStatus.SUBMITTED])
+            )
+        ).all()
 
     @staticmethod
     def update(db: Session, report_id: int, **kwargs) -> Optional[Report]:
@@ -124,6 +169,30 @@ class ReportRepository:
         return report
 
     @staticmethod
+    def approve(db: Session, report_id: int, approver_id: int) -> Optional[Report]:
+        report = db.query(Report).filter(Report.id == report_id).first()
+        if report:
+            report.status = ReportStatus.APPROVED
+            report.approved_by = approver_id
+            report.approved_at = datetime.utcnow()
+            report.rejection_reason = None
+            db.commit()
+            db.refresh(report)
+        return report
+
+    @staticmethod
+    def reject(db: Session, report_id: int, approver_id: int, reason: str) -> Optional[Report]:
+        report = db.query(Report).filter(Report.id == report_id).first()
+        if report:
+            report.status = ReportStatus.REJECTED
+            report.approved_by = approver_id
+            report.approved_at = datetime.utcnow()
+            report.rejection_reason = reason
+            db.commit()
+            db.refresh(report)
+        return report
+
+    @staticmethod
     def delete(db: Session, report_id: int) -> bool:
         report = db.query(Report).filter(Report.id == report_id).first()
         if report:
@@ -131,3 +200,27 @@ class ReportRepository:
             db.commit()
             return True
         return False
+
+    @staticmethod
+    def get_all_for_export(db: Session, start_date: Optional[str] = None, end_date: Optional[str] = None, status: Optional[str] = None):
+        query = db.query(Report).options(
+            joinedload(Report.employee),
+            joinedload(Report.approver),
+            joinedload(Report.transaction).joinedload(Transaction.customer)
+        )
+        
+        # Apply date filters if provided
+        if start_date:
+            query = query.filter(Report.created_at >= start_date)
+        if end_date:
+            query = query.filter(Report.created_at <= end_date)
+        
+        # Apply status filter if provided
+        if status:
+            try:
+                status_enum = ReportStatus(status)
+                query = query.filter(Report.status == status_enum)
+            except ValueError:
+                pass  # Invalid status, ignore filter
+        
+        return query.order_by(Report.created_at.desc()).all()

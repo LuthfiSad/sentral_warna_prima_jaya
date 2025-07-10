@@ -86,6 +86,10 @@ class EmployeeRepository:
         return db.query(Employee).filter(Employee.email == email).first()
 
     @staticmethod
+    def get_all_active(db: Session):
+        return db.query(Employee).filter(Employee.is_active == True).all()
+
+    @staticmethod
     def create(db: Session, name: str, email: str, date_of_birth, divisi: str, address: str, image_url: str = None, face_encoding: str = None) -> Employee:
         new_employee = Employee(
             name=name,
