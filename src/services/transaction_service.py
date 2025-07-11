@@ -5,6 +5,7 @@ from src.repositories.transaction_repository import TransactionRepository
 from src.repositories.customer_repository import CustomerRepository
 from src.repositories.history_repository import HistoryRepository
 from src.repositories.report_repository import ReportRepository
+from src.repositories.user_repository import UserRepository
 from src.schemas.transaction_schema import TransactionCreateSchema, TransactionUpdateSchema, TransactionStatusUpdateSchema
 from src.models.transaction_model import TransactionStatus
 from src.models.report_model import ReportStatus
@@ -23,10 +24,13 @@ class TransactionService:
             
             transaction = TransactionRepository.create(db, transaction_data)
             
+            user = UserRepository.get_by_id(db, created_by)
+            if not user:
+                raise AppError(404, MESSAGE_CODE.NOT_FOUND, "User not found")
             # Create history record
             HistoryRepository.create(
                 db, transaction.id, TransactionStatus.PENDING.value, 
-                f"Transaction created by admin", created_by
+                f"Transaction created by {user.username}", created_by
             )
             
             return transaction
