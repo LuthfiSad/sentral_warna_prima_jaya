@@ -62,7 +62,7 @@ class AttendanceRepository:
         ).first()
         
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, employee_id: int = None):
+    def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None, employee_id: int = None):
         query = db.query(Attendance).options(joinedload(Attendance.employee)).join(Employee)
         
         # Apply employee filter if provided (for non-admin users)
@@ -84,17 +84,17 @@ class AttendanceRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        attendances = query.offset(offset).limit(per_page).all()
+        attendances = query.offset(offset).limit(perPage).all()
         
         return {
             "attendances": attendances,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }
@@ -121,7 +121,7 @@ class AttendanceRepository:
         return deleted_count
 
     # @staticmethod
-    # def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+    # def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None):
     #     query = db.query(Attendance).join(Employee)
         
     #     # Apply search filter (searching in employee data)
@@ -139,24 +139,24 @@ class AttendanceRepository:
     #     total_data = query.count()
         
     #     # Calculate pagination
-    #     total_pages = (total_data + per_page - 1) // per_page
-    #     offset = (page - 1) * per_page
+    #     total_pages = (total_data + perPage - 1) // perPage
+    #     offset = (page - 1) * perPage
         
     #     # Get paginated data with employee relationship
-    #     attendances = query.offset(offset).limit(per_page).all()
+    #     attendances = query.offset(offset).limit(perPage).all()
         
     #     return {
     #         "attendances": attendances,
     #         "meta": {
     #             "page": page,
-    #             "perPage": per_page,
+    #             "perPage": perPage,
     #             "totalPages": total_pages,
     #             "totalData": total_data
     #         }
     #     }
     
     # @staticmethod
-    # def get_all(db: Session, page: int = 1, per_page: int = 10, 
+    # def get_all(db: Session, page: int = 1, perPage: int = 10, 
     #            employee_id: Optional[int] = None, start_date: Optional[date] = None,
     #            end_date: Optional[date] = None):
     #     query = db.query(Attendance)
@@ -175,17 +175,17 @@ class AttendanceRepository:
     #     total_data = query.count()
         
     #     # Calculate pagination
-    #     total_pages = (total_data + per_page - 1) // per_page
-    #     offset = (page - 1) * per_page
+    #     total_pages = (total_data + perPage - 1) // perPage
+    #     offset = (page - 1) * perPage
         
     #     # Get paginated data with employee relationship
-    #     attendances = query.offset(offset).limit(per_page).all()
+    #     attendances = query.offset(offset).limit(perPage).all()
         
     #     return {
     #         "attendances": attendances,
     #         "meta": {
     #             "page": page,
-    #             "perPage": per_page,
+    #             "perPage": perPage,
     #             "totalPages": total_pages,
     #             "totalData": total_data
     #         }

@@ -32,11 +32,11 @@ class CustomerController:
     @staticmethod
     async def get_all_customers(
         page: int = 1,
-        per_page: int = 10,
+        perPage: int = 10,
         search: Optional[str] = None,
         db: Session = Depends(get_db)
     ):
-        result = CustomerService.get_all_customers(db, page, per_page, search)
+        result = CustomerService.get_all_customers(db, page, perPage, search)
         return handle_response(
             200,
             MESSAGE_CODE.SUCCESS,
@@ -68,10 +68,10 @@ class CustomerController:
     async def get_customer_transactions(
         customer_id: int,
         page: int = 1,
-        per_page: int = 10,
+        perPage: int = 10,
         db: Session = Depends(get_db)
     ):
-        result = CustomerService.get_customer_transactions(db, customer_id, page, per_page)
+        result = CustomerService.get_customer_transactions(db, customer_id, page, perPage)
         return handle_response(
             200,
             MESSAGE_CODE.SUCCESS,

@@ -29,8 +29,8 @@ class CustomerService:
         return CustomerRepository.get_by_plate_number(db, plate_number.upper())
 
     @staticmethod
-    def get_all_customers(db: Session, page: int = 1, per_page: int = 10, search: str = None):
-        return CustomerRepository.get_all(db, page, per_page, search)
+    def get_all_customers(db: Session, page: int = 1, perPage: int = 10, search: str = None):
+        return CustomerRepository.get_all(db, page, perPage, search)
 
     @staticmethod
     def get_customer_by_id(db: Session, customer_id: int):
@@ -66,5 +66,5 @@ class CustomerService:
         return {"message": "Customer deleted successfully"}
 
     @staticmethod
-    def get_customer_transactions(db: Session, customer_id: int, page: int = 1, per_page: int = 10):
-        return CustomerRepository.get_customer_transactions(db, customer_id, page, per_page)
+    def get_customer_transactions(db: Session, customer_id: int, page: int = 1, perPage: int = 10):
+        return CustomerRepository.get_customer_transactions(db, customer_id, page, perPage)

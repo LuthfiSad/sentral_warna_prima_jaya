@@ -42,7 +42,7 @@ class ReportRepository:
         ).filter(Report.id == report_id).first()
 
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, status: str = None, transaction_id: int = None, karyawan_id: Optional[int] = None):
+    def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None, status: str = None, transaction_id: int = None, karyawan_id: Optional[int] = None):
         query = db.query(Report).options(
             joinedload(Report.employee),
             joinedload(Report.transaction).joinedload(Transaction.customer)
@@ -80,24 +80,24 @@ class ReportRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        reports = query.order_by(Report.created_at.desc()).offset(offset).limit(per_page).all()
+        reports = query.order_by(Report.created_at.desc()).offset(offset).limit(perPage).all()
         
         return {
             "reports": reports,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }
         }
 
     @staticmethod
-    def get_pending_approval(db: Session, page: int = 1, per_page: int = 10):
+    def get_pending_approval(db: Session, page: int = 1, perPage: int = 10):
         query = db.query(Report).options(
             joinedload(Report.employee),
             joinedload(Report.transaction).joinedload(Transaction.customer)
@@ -107,17 +107,17 @@ class ReportRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        reports = query.order_by(Report.created_at.asc()).offset(offset).limit(per_page).all()
+        reports = query.order_by(Report.created_at.asc()).offset(offset).limit(perPage).all()
         
         return {
             "reports": reports,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }
@@ -172,7 +172,7 @@ class ReportRepository:
     def approve(db: Session, report_id: int, approver_id: int) -> Optional[Report]:
         report = db.query(Report).filter(Report.id == report_id).first()
         if report:
-            report.status = ReportStatus.APPROVED
+            report.status = ReportStatus.APPROVED.value
             report.approved_by = approver_id
             report.approved_at = datetime.utcnow()
             report.rejection_reason = None
@@ -184,7 +184,7 @@ class ReportRepository:
     def reject(db: Session, report_id: int, approver_id: int, reason: str) -> Optional[Report]:
         report = db.query(Report).filter(Report.id == report_id).first()
         if report:
-            report.status = ReportStatus.REJECTED
+            report.status = ReportStatus.REJECTED.value
             report.approved_by = approver_id
             report.approved_at = datetime.utcnow()
             report.rejection_reason = reason

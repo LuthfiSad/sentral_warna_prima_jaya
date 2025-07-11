@@ -4,7 +4,7 @@ from fastapi import APIRouter, FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 
-from src.routes import attendance_routes, customer_routes, employee_routes, transaction_routes, user_routes, report_routes
+from src.routes import attendance_routes, customer_routes, employee_routes, history_routes, transaction_routes, user_routes, report_routes
 from src.utils.error import app_error_handler, AppError, validation_exception_handler
 from src.config.settings import PORT
 from fastapi.exceptions import RequestValidationError
@@ -61,7 +61,7 @@ api_router.include_router(attendance_routes.router, prefix="/attendances", tags=
 api_router.include_router(report_routes.router, prefix="/reports", tags=["Reports"])
 api_router.include_router(customer_routes.router, prefix="/customers", tags=["Customers"])
 api_router.include_router(transaction_routes.router, prefix="/transactions", tags=["Transactions"])
-api_router.include_router(report_routes.router, prefix="/reports", tags=["Reports"])
+api_router.include_router(history_routes.router, prefix="/histories", tags=["Histories"])
 
 # Masukkan api_router ke aplikasi FastAPI
 app.include_router(api_router)
@@ -103,4 +103,4 @@ async def starlette_http_exception_handler(request: Request, exc: StarletteHTTPE
     )
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(PORT))
+    uvicorn.run("src.main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8000)), reload=True)

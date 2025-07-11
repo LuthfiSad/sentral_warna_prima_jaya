@@ -1,9 +1,9 @@
 from typing import Dict
 
-def get_pagination_meta(page: int, per_page: int, total_data: int) -> Dict[str, int]:
+def get_pagination_meta(page: int, perPage: int, total_data: int) -> Dict[str, int]:
     return {
         "page": page,
-        "perPage": per_page,
+        "perPage": perPage,
         "totalData": total_data,
-        "totalPages": (total_data + per_page - 1) // per_page,  # Math.ceil
+        "totalPages": (total_data + perPage - 1) // perPage,  # Math.ceil
     }

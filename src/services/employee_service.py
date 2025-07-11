@@ -27,8 +27,8 @@ class EmployeeService:
     #     return EmployeeRepository.get_all(db, skip, limit)
     
     @staticmethod
-    def get_all_employees(db: Session, page: int = 1, per_page: int = 10, search: str = None):
-        return EmployeeRepository.get_all(db, page, per_page, search)
+    def get_all_employees(db: Session, page: int = 1, perPage: int = 10, search: str = None):
+        return EmployeeRepository.get_all(db, page, perPage, search)
 
     @staticmethod
     def get_employee_by_id(db: Session, employee_id: int):

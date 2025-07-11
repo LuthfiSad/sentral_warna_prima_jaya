@@ -43,7 +43,7 @@ class UserRepository:
         return new_user
     
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+    def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None):
         query = db.query(User).options(joinedload(User.employee))
         
         # Apply search filter
@@ -76,11 +76,11 @@ class UserRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        users = query.offset(offset).limit(per_page).all()
+        users = query.offset(offset).limit(perPage).all()
         
         users_schema = TypeAdapter(list[UserResponseSchema]).validate_python(users)
         
@@ -88,7 +88,7 @@ class UserRepository:
             "users": users_schema,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }
@@ -113,6 +113,9 @@ class UserRepository:
             # Inject attendance ke dalam employee
             user.employee.attendance_today = today_attendance
         return UserResponseSchema.model_validate(user) if user else None
+    
+    def get_by_employee_id(self, db: Session, employee_id: int):
+        return db.query(User).filter(User.karyawan_id == employee_id).first()
     
     @staticmethod
     def update(db: Session, user_id: int, **kwargs) -> Optional[User]:

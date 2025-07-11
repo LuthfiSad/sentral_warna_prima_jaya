@@ -16,11 +16,11 @@ class EmployeeController:
     @staticmethod
     async def get_all_employees(
         page: int = 1, 
-        per_page: int = 10, 
+        perPage: int = 10, 
         search: str = None, 
         db: Session = Depends(get_db)
     ):
-        result = EmployeeService.get_all_employees(db, page, per_page, search)
+        result = EmployeeService.get_all_employees(db, page, perPage, search)
         return handle_response(
             200, 
             MESSAGE_CODE.SUCCESS, 

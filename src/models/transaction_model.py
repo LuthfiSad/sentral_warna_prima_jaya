@@ -5,11 +5,11 @@ from sqlalchemy.orm import relationship
 import enum
 
 class TransactionStatus(enum.Enum):
-    PENDING = "pending"
-    PROSES = "proses"
-    MENUNGGU_APPROVAL = "menunggu_approval"
-    SELESAI = "selesai"
-    DIBAYAR = "dibayar"
+    PENDING = "PENDING"
+    PROSES = "PROSES"
+    MENUNGGU_APPROVAL = "MENUNGGU_APPROVAL"
+    SELESAI = "SELESAI"
+    DIBAYAR = "DIBAYAR"
 
 class Transaction(Base):
     __tablename__ = "transactions"

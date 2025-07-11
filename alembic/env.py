@@ -9,6 +9,9 @@ from src.models.user_model import User
 from src.models.employee_model import Employee
 from src.models.attendance_model import Attendance
 from src.models.report_model import Report
+from src.models.transaction_model import Transaction
+from src.models.customer_model import Customer
+from src.models.history_model import History
 from src.config.settings import DATABASE_URL
 
 

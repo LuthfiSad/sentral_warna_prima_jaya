@@ -6,7 +6,6 @@ from enum import Enum
 
 class ReportStatusEnum(str, Enum):
     DRAFT = "draft"
-    SUBMITTED = "submitted"
     APPROVED = "approved"
     REJECTED = "rejected"
 

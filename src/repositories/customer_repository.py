@@ -33,7 +33,7 @@ class CustomerRepository:
         return db.query(Customer).filter(Customer.plate_number == plate_number.upper()).first()
 
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+    def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None):
         query = db.query(Customer)
         
         if search:
@@ -53,17 +53,17 @@ class CustomerRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        customers = query.order_by(Customer.created_at.desc()).offset(offset).limit(per_page).all()
+        customers = query.order_by(Customer.created_at.desc()).offset(offset).limit(perPage).all()
         
         return {
             "customers": customers,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }
@@ -90,24 +90,24 @@ class CustomerRepository:
         return False
 
     @staticmethod
-    def get_customer_transactions(db: Session, customer_id: int, page: int = 1, per_page: int = 10):
+    def get_customer_transactions(db: Session, customer_id: int, page: int = 1, perPage: int = 10):
         query = db.query(Transaction).filter(Transaction.customer_id == customer_id)
         
         # Get total count
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        transactions = query.order_by(Transaction.created_at.desc()).offset(offset).limit(per_page).all()
+        transactions = query.order_by(Transaction.created_at.desc()).offset(offset).limit(perPage).all()
         
         return {
             "transactions": transactions,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }

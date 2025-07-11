@@ -36,7 +36,7 @@ class AttendanceController:
     @staticmethod
     async def get_all_attendance(
         page: int = 1,
-        per_page: int = 10,
+        perPage: int = 10,
         search: Optional[str] = None,
         db: Session = Depends(get_db),
         current_user: dict = None  # Add this parameter
@@ -46,7 +46,7 @@ class AttendanceController:
         if not current_user.get("is_admin", False):
             employee_id = current_user.get("employee_id")  # atau sesuai nama field di JWT
         
-        result = AttendanceService.get_all_attendance(db, page, per_page, search, employee_id)
+        result = AttendanceService.get_all_attendance(db, page, perPage, search, employee_id)
         return handle_response(
             200,
             MESSAGE_CODE.SUCCESS,
@@ -80,11 +80,11 @@ class AttendanceController:
     # @staticmethod
     # async def get_all_attendance(
     #     page: int = 1,
-    #     per_page: int = 10,
+    #     perPage: int = 10,
     #     search: Optional[str] = None,
     #     db: Session = Depends(get_db)
     # ):
-    #     result = AttendanceService.get_all_attendance(db, page, per_page, search)
+    #     result = AttendanceService.get_all_attendance(db, page, perPage, search)
     #     return handle_response(
     #         200,
     #         MESSAGE_CODE.SUCCESS,
@@ -96,13 +96,13 @@ class AttendanceController:
     # # @staticmethod
     # # async def get_all_attendance(
     # #     page: int = 1,
-    # #     per_page: int = 10,
+    # #     perPage: int = 10,
     # #     employee_id: Optional[int] = None,
     # #     start_date: Optional[date] = None,
     # #     end_date: Optional[date] = None,
     # #     db: Session = Depends(get_db)
     # # ):
-    # #     result = AttendanceService.get_all_attendance(db, page, per_page, employee_id, start_date, end_date)
+    # #     result = AttendanceService.get_all_attendance(db, page, perPage, employee_id, start_date, end_date)
     # #     return handle_response(
     # #         200,
     # #         MESSAGE_CODE.SUCCESS,

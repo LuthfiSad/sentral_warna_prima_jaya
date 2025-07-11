@@ -34,13 +34,13 @@ async def search_by_plate(
 @catch_exceptions
 async def get_all_customers(
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    perPage: int = Query(10, ge=1, le=100),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """Get all customers with pagination and search"""
-    return await CustomerController.get_all_customers(page, per_page, search, db)
+    return await CustomerController.get_all_customers(page, perPage, search, db)
 
 @router.get("/{customer_id}")
 @catch_exceptions
@@ -78,9 +78,9 @@ async def delete_customer(
 async def get_customer_transactions(
     customer_id: int,
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    perPage: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """Get customer transaction history"""
-    return await CustomerController.get_customer_transactions(customer_id, page, per_page, db)
+    return await CustomerController.get_customer_transactions(customer_id, page, perPage, db)

@@ -13,7 +13,7 @@ class TransactionRepository:
         new_transaction = Transaction(
             customer_id=transaction_data.customer_id,
             complaint=transaction_data.complaint,
-            status=TransactionStatus.PENDING
+            status=TransactionStatus.PENDING.value
         )
         db.add(new_transaction)
         db.commit()
@@ -29,7 +29,7 @@ class TransactionRepository:
         ).filter(Transaction.id == transaction_id).first()
 
     @staticmethod
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None, status: str = None, karyawan_id: Optional[int] = None):
+    def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None, status: str = None, karyawan_id: Optional[int] = None):
         query = db.query(Transaction).options(
             joinedload(Transaction.customer),
             joinedload(Transaction.reports)
@@ -39,16 +39,20 @@ class TransactionRepository:
         if karyawan_id:
             query = query.join(Report).filter(Report.employee_id == karyawan_id)
         
-        # Apply status filter
+        print(status)
+        
+        # Apply status filter 
         if status:
             try:
-                status_enum = TransactionStatus(status)
+                status_enum = TransactionStatus(status.upper())
                 query = query.filter(Transaction.status == status_enum)
             except ValueError:
                 pass  # Invalid status, ignore filter
         
+        print(query)
+        
         # Apply search filter
-        if search:
+        if search and search != "selected":
             search_filter = f"%{search}%"
             query = query.join(Customer).filter(
                 or_(
@@ -63,17 +67,17 @@ class TransactionRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        transactions = query.order_by(Transaction.created_at.desc()).offset(offset).limit(per_page).all()
+        transactions = query.order_by(Transaction.created_at.desc()).offset(offset).limit(perPage).all()
         
         return {
             "transactions": transactions,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }

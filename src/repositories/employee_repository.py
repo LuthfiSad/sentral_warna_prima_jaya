@@ -11,7 +11,7 @@ class EmployeeRepository:
     #     return db.query(Employee).offset(skip).limit(limit).all()
     
     @staticmethod  
-    def get_all(db: Session, page: int = 1, per_page: int = 10, search: str = None):
+    def get_all(db: Session, page: int = 1, perPage: int = 10, search: str = None):
         query = db.query(Employee)
         
         # Apply search filter
@@ -29,17 +29,17 @@ class EmployeeRepository:
         total_data = query.count()
         
         # Calculate pagination
-        total_pages = (total_data + per_page - 1) // per_page
-        offset = (page - 1) * per_page
+        total_pages = (total_data + perPage - 1) // perPage
+        offset = (page - 1) * perPage
         
         # Get paginated data
-        employees = query.offset(offset).limit(per_page).all()
+        employees = query.offset(offset).limit(perPage).all()
         
         return {
             "employees": employees,
             "meta": {
                 "page": page,
-                "perPage": per_page,
+                "perPage": perPage,
                 "totalPages": total_pages,
                 "totalData": total_data
             }

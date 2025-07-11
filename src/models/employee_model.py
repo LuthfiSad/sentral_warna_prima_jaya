@@ -18,5 +18,19 @@ class Employee(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
+    # Relationships
     attendances = relationship("Attendance", back_populates="employee")
-    reports = relationship("Report", back_populates="employee")
+    
+    # Reports created by this employee
+    reports = relationship(
+        "Report", 
+        foreign_keys="[Report.employee_id]",
+        back_populates="employee"
+    )
+    
+    # Reports approved by this employee
+    approved_reports = relationship(
+        "Report",
+        foreign_keys="[Report.approved_by]",
+        back_populates="approver"
+    )

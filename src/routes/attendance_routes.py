@@ -37,12 +37,12 @@ async def checkout(
 @catch_exceptions
 async def get_all_attendance(
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    perPage: int = Query(10, ge=1, le=100),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    return await AttendanceController.get_all_attendance(page, per_page, search, db, current_user)
+    return await AttendanceController.get_all_attendance(page, perPage, search, db, current_user)
 
 @router.get("/{attendance_id}")
 @catch_exceptions
@@ -68,13 +68,13 @@ async def delete_attendances(
 # @catch_exceptions
 # async def get_all_attendance(
 #     page: int = Query(1, ge=1),
-#     per_page: int = Query(10, ge=1, le=100),
+#     perPage: int = Query(10, ge=1, le=100),
 #     search: Optional[str] = Query(None),
 #     db: Session = Depends(get_db),
 #     current_user: dict = Depends(require_admin)
 # ):
     
-#     return await AttendanceController.get_all_attendance(page, per_page, search, db)
+#     return await AttendanceController.get_all_attendance(page, perPage, search, db)
 
 # @router.get("/{attendance_id}")
 # @catch_exceptions

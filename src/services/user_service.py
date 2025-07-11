@@ -65,8 +65,8 @@ class UserService:
         return {"access_token": token, "user": user}
     
     @staticmethod
-    def get_all_users(db: Session, page: int = 1, per_page: int = 10, search: str = None):
-        return UserRepository.get_all(db, page, per_page, search)
+    def get_all_users(db: Session, page: int = 1, perPage: int = 10, search: str = None):
+        return UserRepository.get_all(db, page, perPage, search)
     
     @staticmethod
     def get_user_by_id(db: Session, user_id: int):

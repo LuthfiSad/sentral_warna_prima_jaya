@@ -84,7 +84,7 @@ uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
 
 ```
 
-## w0rkflow
+## workflow
 # 🚀 Vehicle Repair Management System - Flow Documentation
 
 ## Overview
@@ -144,7 +144,7 @@ Sistem manajemen perbaikan kendaraan dengan flow yang terstruktur dari pendaftar
 **Endpoint:** `POST /api/reports/{report_id}/submit`
 
 **Status berubah:**
-- Report: `DRAFT` → `SUBMITTED`
+- Report: `DRAFT` → `APPROVED`
 - Transaction: `PROSES` → `MENUNGGU_APPROVAL`
 
 ### 6️⃣ Admin/Supervisor Approval
@@ -160,7 +160,7 @@ Sistem manajemen perbaikan kendaraan dengan flow yang terstruktur dari pendaftar
 }
 ```
 
-**Status jika reject:** `SUBMITTED` → `REJECTED` (karyawan bisa edit ulang)
+**Status jika reject:** `APPROVED` → `REJECTED` (karyawan bisa edit ulang)
 
 ### 7️⃣ Admin Update Biaya & Finalisasi
 **Calculate Total Cost:** `POST /api/transactions/{transaction_id}/calculate-cost`

@@ -34,11 +34,11 @@ class UserController:
     @staticmethod
     async def get_all_users(
         page: int = 1,
-        per_page: int = 10,
+        perPage: int = 10,
         search: str = None,
         db: Session = Depends(get_db)
     ):
-        result = UserService.get_all_users(db, page, per_page, search)
+        result = UserService.get_all_users(db, page, perPage, search)
         return handle_response(
             200,
             MESSAGE_CODE.SUCCESS,

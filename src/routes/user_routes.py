@@ -25,12 +25,12 @@ def login_route(user_data: UserLoginSchema, db: Session = Depends(get_db)):
 @catch_exceptions
 async def get_all_users(
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    perPage: int = Query(10, ge=1, le=100),
     search: str = Query(None),
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_admin)
 ):
-    return await UserController.get_all_users(page, per_page, search, db)
+    return await UserController.get_all_users(page, perPage, search, db)
 
 @router.get("/check")
 @catch_exceptions

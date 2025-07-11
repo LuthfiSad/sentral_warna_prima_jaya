@@ -121,18 +121,18 @@ class AttendanceService:
             raise
 
     # @staticmethod
-    # def get_all_attendance(db: Session, page: int = 1, per_page: int = 10, 
+    # def get_all_attendance(db: Session, page: int = 1, perPage: int = 10, 
     #                       employee_id: Optional[int] = None,
     #                       start_date: Optional[date] = None,
     #                       end_date: Optional[date] = None):
     #     """
     #     Get paginated attendance records with filters
     #     """
-    #     return AttendanceRepository.get_all(db, page, per_page, employee_id, start_date, end_date)
+    #     return AttendanceRepository.get_all(db, page, perPage, employee_id, start_date, end_date)
     
     @staticmethod
-    def get_all_attendance(db: Session, page: int = 1, per_page: int = 10, search: str = None, employee_id: Optional[int] = None):
-        return AttendanceRepository.get_all(db, page, per_page, search, employee_id)
+    def get_all_attendance(db: Session, page: int = 1, perPage: int = 10, search: str = None, employee_id: Optional[int] = None):
+        return AttendanceRepository.get_all(db, page, perPage, search, employee_id)
 
     @staticmethod
     def get_attendance_by_id(db: Session, attendance_id: int, employee_id: int = None):

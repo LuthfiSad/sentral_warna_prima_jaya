@@ -23,7 +23,7 @@ async def create_draft_report(
 ):
     """Karyawan buat draft laporan per pekerjaan"""
     return await ReportController.create_draft_report(
-        transaction_id, current_user.get("karyawan_id"), 
+        transaction_id, current_user, 
         description, start_time, end_time, image, db
     )
 
@@ -31,7 +31,7 @@ async def create_draft_report(
 @catch_exceptions
 async def get_all_reports(
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    perPage: int = Query(10, ge=1, le=100),
     search: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     transaction_id: Optional[int] = Query(None),
@@ -44,19 +44,19 @@ async def get_all_reports(
         karyawan_id = current_user.get("karyawan_id")
 
     return await ReportController.get_all_reports(
-        page, per_page, search, status, transaction_id, karyawan_id, db
+        page, perPage, search, status, transaction_id, karyawan_id, db
     )
 
-@router.get("/pending-approval")
-@catch_exceptions
-async def get_pending_reports(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
-):
-    """Admin get reports yang butuh approval"""
-    return await ReportController.get_pending_reports(page, per_page, db)
+# @router.get("/pending-approval")
+# @catch_exceptions
+# async def get_pending_reports(
+#     page: int = Query(1, ge=1),
+#     perPage: int = Query(10, ge=1, le=100),
+#     db: Session = Depends(get_db),
+#     current_user: dict = Depends(require_admin)
+# ):
+#     """Admin get reports yang butuh approval"""
+#     return await ReportController.get_pending_reports(page, perPage, db)
 
 @router.get("/{report_id}")
 @catch_exceptions

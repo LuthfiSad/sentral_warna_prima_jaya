@@ -25,7 +25,7 @@ class TransactionService:
             
             # Create history record
             HistoryRepository.create(
-                db, transaction.id, TransactionStatus.PENDING, 
+                db, transaction.id, TransactionStatus.PENDING.value, 
                 f"Transaction created by admin", created_by
             )
             
@@ -36,8 +36,8 @@ class TransactionService:
             raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to create transaction: {str(e)}")
 
     @staticmethod
-    def get_all_transactions(db: Session, page: int = 1, per_page: int = 10, search: str = None, status: str = None, karyawan_id: Optional[int] = None):
-        return TransactionRepository.get_all(db, page, per_page, search, status, karyawan_id)
+    def get_all_transactions(db: Session, page: int = 1, perPage: int = 10, search: str = None, status: str = None, karyawan_id: Optional[int] = None):
+        return TransactionRepository.get_all(db, page, perPage, search, status, karyawan_id)
 
     @staticmethod
     def get_transaction_by_id(db: Session, transaction_id: int):
@@ -114,23 +114,26 @@ class TransactionService:
             raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to start work: {str(e)}")
 
     @staticmethod
-    async def calculate_total_cost(db: Session, transaction_id: int):
-        """Calculate total cost dari approved reports"""
+    async def calculate_total_cost(db: Session, transaction_id: int, total_cost: float, current_user: dict):
+        """Admin input total cost untuk transaksi"""
         try:
             transaction = TransactionRepository.get_by_id(db, transaction_id)
             if not transaction:
                 raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Transaction not found")
 
-            # Get all approved reports for this transaction
+            # Check if transaction has approved reports
             approved_reports = ReportRepository.get_approved_reports_by_transaction(db, transaction_id)
             
             if not approved_reports:
                 raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "No approved reports found for this transaction")
 
-            # Calculate total cost (this is a simple example, you might have more complex logic)
-            total_cost = sum([1000.0 for _ in approved_reports])  # Base cost per report, adjust as needed
-            
+            # Update transaction with input total cost
             updated_transaction = TransactionRepository.update_cost(db, transaction_id, total_cost)
+            # Create history record
+            HistoryRepository.create(
+                db, transaction_id, transaction.status.value, 
+                f"Total cost calculated: Rp {total_cost:,.0f}", current_user.get("user_id")
+            )
             
             return updated_transaction
         except AppError:
@@ -139,7 +142,7 @@ class TransactionService:
             raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to calculate total cost: {str(e)}")
 
     @staticmethod
-    async def finalize_transaction(db: Session, transaction_id: int):
+    async def finalize_transaction(db: Session, transaction_id: int, current_user: dict):
         """Admin finalize transaction ke status selesai"""
         try:
             transaction = TransactionRepository.get_by_id(db, transaction_id)
@@ -154,12 +157,12 @@ class TransactionService:
             if not transaction.total_cost:
                 raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Total cost must be calculated before finalizing")
 
-            updated_transaction = TransactionRepository.update_status(db, transaction_id, TransactionStatus.SELESAI)
+            updated_transaction = TransactionRepository.update_status(db, transaction_id, TransactionStatus.SELESAI.value)
             
             # Create history record
             HistoryRepository.create(
-                db, transaction_id, TransactionStatus.SELESAI, 
-                f"Transaction finalized", None
+                db, transaction_id, TransactionStatus.SELESAI.value, 
+                f"Transaction finalized", current_user.get("user_id")
             )
             
             return updated_transaction
@@ -179,11 +182,11 @@ class TransactionService:
             if transaction.status != TransactionStatus.SELESAI:
                 raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Transaction must be completed before marking as paid")
 
-            updated_transaction = TransactionRepository.update_status(db, transaction_id, TransactionStatus.DIBAYAR)
+            updated_transaction = TransactionRepository.update_status(db, transaction_id, TransactionStatus.DIBAYAR.value)
             
             # Create history record
             HistoryRepository.create(
-                db, transaction_id, TransactionStatus.DIBAYAR, 
+                db, transaction_id, TransactionStatus.DIBAYAR.value, 
                 f"Payment received", marked_by
             )
             

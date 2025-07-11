@@ -5,11 +5,11 @@ from datetime import datetime
 from enum import Enum
 
 class TransactionStatusEnum(str, Enum):
-    PENDING = "pending"
-    PROSES = "proses"
-    MENUNGGU_APPROVAL = "menunggu_approval"
-    SELESAI = "selesai"
-    DIBAYAR = "dibayar"
+    PENDING = "PENDING"
+    PROSES = "PROSES"
+    MENUNGGU_APPROVAL = "MENUNGGU_APPROVAL"
+    SELESAI = "SELESAI"
+    DIBAYAR = "DIBAYAR"
 
 class TransactionCreateSchema(BaseModel):
     customer_id: int
@@ -28,6 +28,17 @@ class TransactionUpdateSchema(BaseModel):
 class TransactionStatusUpdateSchema(BaseModel):
     status: TransactionStatusEnum
     note: Optional[str] = None
+    
+class TransactionCalculateCostSchema(BaseModel):
+    total_cost: float
+
+    @validator('total_cost')
+    def validate_total_cost(cls, v):
+        if v <= 0:
+            raise ValueError('Total cost must be greater than 0')
+        if v < 1000:
+            raise ValueError('Total cost must be at least 1000')
+        return v
 
 class TransactionResponseSchema(BaseModel):
     id: int

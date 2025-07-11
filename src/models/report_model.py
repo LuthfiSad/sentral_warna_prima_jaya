@@ -5,15 +5,16 @@ from sqlalchemy.orm import relationship
 import enum
 
 class ReportStatus(enum.Enum):
-    DRAFT = "draft"
-    APPROVED = "approved"
-    REJECTED = "rejected"
+    DRAFT = "DRAFT"
+    APPROVED = "APPROVED"
+    SUBMITTED = "SUBMITTED"
+    REJECTED = "REJECTED"
 
 class Report(Base):
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True, index=True)
-    transaction_id = Column(Integer, ForeignKey("transactions.id"), nullable=False)
+    transaction_id = Column(Integer, ForeignKey("transactions.id"), nullable=False)  # Using string reference
     employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
 
     description = Column(Text, nullable=False)
@@ -28,6 +29,6 @@ class Report(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    transaction = relationship("Transaction", back_populates="reports")
+    transaction = relationship("Transaction", back_populates="reports")  # Using string reference
     employee = relationship("Employee", foreign_keys=[employee_id])
     approver = relationship("Employee", foreign_keys=[approved_by])
