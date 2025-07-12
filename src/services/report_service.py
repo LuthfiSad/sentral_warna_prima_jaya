@@ -15,7 +15,7 @@ from src.utils.message_code import MESSAGE_CODE
 
 class ReportService:
     @staticmethod
-    async def create_draft_report(
+    async def create_pending_report(
         db: Session, 
         transaction_id: int,
         current_user: dict, 
@@ -24,7 +24,7 @@ class ReportService:
         end_time: Optional[datetime] = None,
         image_data: bytes = None
     ):
-        """Karyawan buat draft laporan"""
+        """Karyawan buat pending laporan"""
         try:
             # Verify transaction exists and is in progress
             transaction = TransactionRepository.get_by_id(db, transaction_id)
@@ -53,7 +53,7 @@ class ReportService:
                 if isinstance(image_url, AppError):
                     raise image_url
 
-            report = ReportRepository.create_draft(
+            report = ReportRepository.create_pending(
                 db, transaction_id, current_user.get("karyawan_id"), description, 
                 start_time, end_time, image_url
             )
@@ -62,7 +62,7 @@ class ReportService:
         except AppError:
             raise
         except Exception as e:
-            raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to create draft report: {str(e)}")
+            raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to create pending report: {str(e)}")
 
     @staticmethod
     def get_all_reports(db: Session, page: int = 1, perPage: int = 10, search: str = None, status: str = None, transaction_id: int = None, karyawan_id: Optional[int] = None):
@@ -92,7 +92,7 @@ class ReportService:
         end_time: Optional[datetime] = None,
         image_data: bytes = None
     ):
-        """Update draft report (hanya bisa edit draft/rejected)"""
+        """Update pending report (hanya bisa edit pending/rejected)"""
         try:
             existing_report = ReportRepository.get_by_id(db, report_id)
             if not existing_report:
@@ -102,9 +102,9 @@ class ReportService:
             if existing_report.employee_id != employee_id:
                 raise AppError(403, MESSAGE_CODE.FORBIDDEN, "You can only edit your own reports")
 
-            # Only allow editing draft or rejected reports
-            if existing_report.status not in [ReportStatus.DRAFT, ReportStatus.REJECTED]:
-                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Can only edit draft or rejected reports")
+            # Only allow editing PENDING or rejected reports
+            if existing_report.status not in [ReportStatus.PENDING, ReportStatus.REJECTED]:
+                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Can only edit PENDING or rejected reports")
 
             image_url = existing_report.image_url
             if image_data:
@@ -112,8 +112,8 @@ class ReportService:
                 if isinstance(image_url, AppError):
                     raise image_url
 
-            # Reset status to draft if it was rejected
-            new_status = ReportStatus.DRAFT
+            # Reset status to PENDING if it was rejected
+            new_status = ReportStatus.PENDING
 
             updated_report = ReportRepository.update(
                 db, report_id,
@@ -131,72 +131,109 @@ class ReportService:
         except Exception as e:
             raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to update report: {str(e)}")
 
-    @staticmethod
-    async def submit_report(db: Session, report_id: int, employee_id: int):
-        """Submit draft report untuk approval"""
-        try:
-            report = ReportRepository.get_by_id(db, report_id)
-            if not report:
-                raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Report not found")
+    # @staticmethod
+    # async def submit_report(db: Session, report_id: int, employee_id: int):
+    #     """Submit pending report untuk approval"""
+    #     try:
+    #         report = ReportRepository.get_by_id(db, report_id)
+    #         if not report:
+    #             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Report not found")
 
-            # Check ownership
-            if report.employee_id != employee_id:
-                raise AppError(403, MESSAGE_CODE.FORBIDDEN, "You can only submit your own reports")
+    #         # Check ownership
+    #         if report.employee_id != employee_id:
+    #             raise AppError(403, MESSAGE_CODE.FORBIDDEN, "You can only submit your own reports")
 
-            if report.status != ReportStatus.DRAFT:
-                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only draft reports can be submitted")
+    #         if report.status != ReportStatus.PENDING:
+    #             raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only pending reports can be pending")
 
-            updated_report = ReportRepository.update_status(db, report_id, ReportStatus.SUBMITTED.value)
+    #         updated_report = ReportRepository.update_status(db, report_id, ReportStatus.PENDING.value)
             
-            # Update transaction status if needed
-            transaction = TransactionRepository.get_by_id(db, report.transaction_id)
-            user = UserRepository.get_by_employee_id(db, employee_id)
-            if not user:
-                raise AppError(404, MESSAGE_CODE.NOT_FOUND, "User not found")
-            if transaction.status == TransactionStatus.PROSES:
-                TransactionRepository.update_status(db, report.transaction_id, TransactionStatus.MENUNGGU_APPROVAL)
-                HistoryRepository.create(
-                    db, report.transaction_id, TransactionStatus.MENUNGGU_APPROVAL.value, 
-                    f"Report submitted for approval", user.id
-                )
+    #         # Update transaction status if needed
+    #         transaction = TransactionRepository.get_by_id(db, report.transaction_id)
+    #         user = UserRepository.get_by_employee_id(db, employee_id)
+    #         if not user:
+    #             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "User not found")
+    #         if transaction.status == TransactionStatus.PROSES:
+    #             TransactionRepository.update_status(db, report.transaction_id, TransactionStatus.MENUNGGU_APPROVAL)
+    #             HistoryRepository.create(
+    #                 db, report.transaction_id, TransactionStatus.MENUNGGU_APPROVAL.value, 
+    #                 f"Report pending for approval", user.id
+    #             )
             
-            return updated_report
-        except AppError:
-            raise
-        except Exception as e:
-            raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to submit report: {str(e)}")
+    #         return updated_report
+    #     except AppError:
+    #         raise
+    #     except Exception as e:
+    #         raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to submit report: {str(e)}")
 
     @staticmethod
-    async def approve_report(db: Session, report_id: int, approver_id: int):
+    async def approve_report(db: Session, report_id: int, current_user: dict):
         """Admin approve report"""
         try:
             report = ReportRepository.get_by_id(db, report_id)
             if not report:
                 raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Report not found")
 
-            if report.status != ReportStatus.SUBMITTED:
-                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only submitted reports can be approved")
+            if report.status != ReportStatus.PENDING:
+                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only pending reports can be approved")
 
-            updated_report = ReportRepository.approve(db, report_id, approver_id)
+            # Get transaction info before approving
+            transaction_id = report.transaction_id
+            transaction = TransactionRepository.get_by_id(db, transaction_id)
+            if not transaction:
+                raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Transaction not found")
+
+            # Approve the report
+            updated_report = ReportRepository.approve(db, report_id, current_user.get("karyawan_id"), current_user.get("user_id"))
             
-            return updated_report
+            # Check if there are still any pending reports for this transaction
+            remaining_pending_reports = ReportRepository.get_pending_reports_by_transaction(db, transaction_id)
+            
+            # If no more pending reports, auto-finalize the transaction
+            if not remaining_pending_reports:
+                # Validate transaction can be finalized
+                if not transaction.total_cost:
+                    raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Total cost must be calculated before auto-finalizing transaction")
+                
+                # Update transaction status to SELESAI
+                updated_transaction = TransactionRepository.update_status(db, transaction_id, TransactionStatus.SELESAI.value)
+                
+                # Create history record for transaction finalization
+                HistoryRepository.create(
+                    db, transaction_id, TransactionStatus.SELESAI.value, 
+                    f"Transaction auto-finalized after all reports approved", current_user.get("user_id")
+                )
+                
+                # Optional: Return both updated report and transaction info
+                return {
+                    "report": updated_report,
+                    "transaction_finalized": True,
+                    "transaction": updated_transaction
+                }
+            
+            return {
+                "report": updated_report,
+                "transaction_finalized": False,
+                "remaining_pending_reports": len(remaining_pending_reports) if remaining_pending_reports else 0
+            }
+            
         except AppError:
             raise
         except Exception as e:
             raise AppError(500, MESSAGE_CODE.INTERNAL_SERVER_ERROR, f"Failed to approve report: {str(e)}")
 
     @staticmethod
-    async def reject_report(db: Session, report_id: int, approver_id: int, reason: str):
+    async def reject_report(db: Session, report_id: int, current_user: dict, reason: str):
         """Admin reject report dengan alasan"""
         try:
             report = ReportRepository.get_by_id(db, report_id)
             if not report:
                 raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Report not found")
 
-            if report.status != ReportStatus.SUBMITTED:
-                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only submitted reports can be rejected")
+            if report.status != ReportStatus.PENDING:
+                raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only pending reports can be rejected")
 
-            updated_report = ReportRepository.reject(db, report_id, approver_id, reason)
+            updated_report = ReportRepository.reject(db, report_id, current_user.get("karyawan_id"), current_user.get("user_id"), reason)
             
             return updated_report
         except AppError:
@@ -206,7 +243,7 @@ class ReportService:
 
     @staticmethod
     def delete_report(db: Session, report_id: int, employee_id: int):
-        """Delete draft report"""
+        """Delete pending report"""
         existing_report = ReportRepository.get_by_id(db, report_id)
         if not existing_report:
             raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Report not found")
@@ -215,9 +252,9 @@ class ReportService:
         if existing_report.employee_id != employee_id:
             raise AppError(403, MESSAGE_CODE.FORBIDDEN, "You can only delete your own reports")
 
-        # Only allow deleting draft reports
+        # Only allow deleting pending reports
         if existing_report.status != ReportStatus.DRAFT:
-            raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only draft reports can be deleted")
+            raise AppError(400, MESSAGE_CODE.BAD_REQUEST, "Only pending reports can be deleted")
 
         success = ReportRepository.delete(db, report_id)
         if not success:

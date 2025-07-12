@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.post("/")
 @catch_exceptions
-async def create_draft_report(
+async def create_pending_report(
     transaction_id: int = Form(...),
     description: str = Form(...),
     start_time: Optional[datetime] = Form(None),
@@ -21,8 +21,8 @@ async def create_draft_report(
     db: Session = Depends(get_db),
     current_user: dict = Depends(mush_not_admin_have_employee)
 ):
-    """Karyawan buat draft laporan per pekerjaan"""
-    return await ReportController.create_draft_report(
+    """Karyawan buat pending laporan per pekerjaan"""
+    return await ReportController.create_pending_report(
         transaction_id, current_user, 
         description, start_time, end_time, image, db
     )
@@ -79,7 +79,7 @@ async def update_report(
     db: Session = Depends(get_db),
     current_user: dict = Depends(mush_not_admin_have_employee)
 ):
-    """Karyawan update draft report (hanya bisa edit draft/rejected)"""
+    """Karyawan update pending report (hanya bisa edit pending/rejected)"""
     return await ReportController.update_report(
         report_id, current_user.get("karyawan_id"),
         description, start_time, end_time, image, db
@@ -92,7 +92,7 @@ async def submit_report(
     db: Session = Depends(get_db),
     current_user: dict = Depends(mush_not_admin_have_employee)
 ):
-    """Karyawan submit draft report untuk approval"""
+    """Karyawan submit pending report untuk approval"""
     return await ReportController.submit_report(
         report_id, current_user.get("karyawan_id"), db
     )
@@ -106,7 +106,7 @@ async def approve_report(
 ):
     """Admin approve report"""
     return await ReportController.approve_report(
-        report_id, current_user.get("karyawan_id"), db
+        report_id, current_user, db
     )
 
 @router.post("/{report_id}/reject")
@@ -119,7 +119,7 @@ async def reject_report(
 ):
     """Admin reject report dengan alasan"""
     return await ReportController.reject_report(
-        report_id, current_user.get("karyawan_id"), reason, db
+        report_id, current_user, reason, db
     )
 
 @router.delete("/{report_id}")
@@ -129,7 +129,7 @@ async def delete_report(
     db: Session = Depends(get_db),
     current_user: dict = Depends(mush_not_admin_have_employee)
 ):
-    """Delete draft report (hanya bisa delete draft)"""
+    """Delete pending report (hanya bisa delete pending)"""
     return await ReportController.delete_report(
         report_id, current_user.get("karyawan_id"), db
     )

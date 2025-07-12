@@ -27,6 +27,7 @@ class TransactionService:
             user = UserRepository.get_by_id(db, created_by)
             if not user:
                 raise AppError(404, MESSAGE_CODE.NOT_FOUND, "User not found")
+            print(user.username, "create_transaction")
             # Create history record
             HistoryRepository.create(
                 db, transaction.id, TransactionStatus.PENDING.value, 
@@ -61,7 +62,7 @@ class TransactionService:
             
             # Create history record
             HistoryRepository.create(
-                db, transaction_id, existing_transaction.status, 
+                db, transaction_id, existing_transaction.status.value, 
                 f"Transaction updated", updated_by
             )
             
@@ -78,12 +79,12 @@ class TransactionService:
             if not transaction:
                 raise AppError(404, MESSAGE_CODE.NOT_FOUND, "Transaction not found")
 
-            updated_transaction = TransactionRepository.update_status(db, transaction_id, status_data.status)
+            updated_transaction = TransactionRepository.update_status(db, transaction_id, status_data.status.value)
             
             # Create history record
             note = status_data.note or f"Status changed to {status_data.status.value}"
             HistoryRepository.create(
-                db, transaction_id, status_data.status, note, updated_by
+                db, transaction_id, status_data.status.value, note, updated_by
             )
             
             return updated_transaction

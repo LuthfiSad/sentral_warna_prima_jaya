@@ -7,13 +7,13 @@ from enum import Enum
 class TransactionStatusEnum(str, Enum):
     PENDING = "PENDING"
     PROSES = "PROSES"
-    MENUNGGU_APPROVAL = "MENUNGGU_APPROVAL"
     SELESAI = "SELESAI"
     DIBAYAR = "DIBAYAR"
 
 class TransactionCreateSchema(BaseModel):
     customer_id: int
     complaint: str
+    total_cost: float
 
     @validator('complaint')
     def validate_complaint(cls, v):

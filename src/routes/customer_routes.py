@@ -34,7 +34,7 @@ async def search_by_plate(
 @catch_exceptions
 async def get_all_customers(
     page: int = Query(1, ge=1),
-    perPage: int = Query(10, ge=1, le=100),
+    perPage: int = Query(10, ge=1),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)

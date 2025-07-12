@@ -207,7 +207,7 @@ CUSTOMER REGISTRATION
 - ✅ History tracking setiap perubahan status
 
 ### Report System
-- ✅ Karyawan buat draft laporan per pekerjaan
+- ✅ Karyawan buat pending laporan per pekerjaan
 - ✅ Submit untuk approval
 - ✅ Admin approve/reject dengan alasan
 - ✅ Edit laporan yang di-reject
@@ -254,15 +254,15 @@ GET    /api/transactions/{id}/history     # Get status history
 
 ### Report Endpoints
 ```
-POST   /api/reports/                      # Create draft report
+POST   /api/reports/                      # Create pending report
 GET    /api/reports/                      # Get all reports (filtered by role)
 GET    /api/reports/pending-approval      # Get reports needing approval (admin)
 GET    /api/reports/{id}                  # Get report detail
-PUT    /api/reports/{id}                  # Update draft/rejected report
+PUT    /api/reports/{id}                  # Update pending/rejected report
 POST   /api/reports/{id}/submit           # Submit for approval
 POST   /api/reports/{id}/approve          # Approve report (admin)
 POST   /api/reports/{id}/reject           # Reject report (admin)
-DELETE /api/reports/{id}                  # Delete draft report
+DELETE /api/reports/{id}                  # Delete pending report
 GET    /api/reports/transaction/{id}      # Get all reports for transaction
 GET    /api/reports/export/excel          # Export to Excel (admin)
 ```
@@ -278,7 +278,7 @@ GET    /api/reports/export/excel          # Export to Excel (admin)
 
 ### Employee Permissions
 - ✅ View assigned transactions
-- ✅ Create/edit own draft reports
+- ✅ Create/edit own pending reports
 - ✅ Submit reports for approval
 - ✅ View own report history
 - ❌ Cannot approve reports
@@ -343,7 +343,7 @@ const createReport = async (transactionId, description, photo) => {
 ### Mobile App Workflow
 1. **Login** → Get JWT token
 2. **Scan QR/Barcode** → Search customer by plate
-3. **Offline Mode** → Store drafts locally
+3. **Offline Mode** → Store pendings locally
 4. **Sync** → Upload when online
 5. **Push Notifications** → Approval status updates
 

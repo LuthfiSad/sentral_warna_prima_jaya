@@ -5,9 +5,9 @@ from datetime import datetime
 from enum import Enum
 
 class ReportStatusEnum(str, Enum):
-    DRAFT = "draft"
-    APPROVED = "approved"
-    REJECTED = "rejected"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PENDING = "PENDING"
 
 class ReportCreateSchema(BaseModel):
     transaction_id: int

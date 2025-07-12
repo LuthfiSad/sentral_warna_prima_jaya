@@ -13,7 +13,7 @@ from src.config.database import get_db
 
 class ReportController:
     @staticmethod
-    async def create_draft_report(
+    async def create_pending_report(
         transaction_id: int,
         current_user: dict,
         description: str,
@@ -22,12 +22,12 @@ class ReportController:
         image: Optional[UploadFile] = None,
         db: Session = Depends(get_db)
     ):
-        """Karyawan buat draft laporan"""
+        """Karyawan buat pending laporan"""
         image_data = None
         if image:
             image_data = await image.read()
         
-        result = await ReportService.create_draft_report(
+        result = await ReportService.create_pending_report(
             db, transaction_id, current_user, description, start_time, end_time, image_data
         )
         return handle_response(201, MESSAGE_CODE.CREATED, "Draft report created successfully", result)
@@ -82,7 +82,7 @@ class ReportController:
         image: Optional[UploadFile] = None,
         db: Session = Depends(get_db)
     ):
-        """Update draft report (hanya bisa edit draft/rejected)"""
+        """Update pending report (hanya bisa edit pending/rejected)"""
         image_data = None
         if image:
             image_data = await image.read()
@@ -98,29 +98,29 @@ class ReportController:
         employee_id: int,
         db: Session = Depends(get_db)
     ):
-        """Submit draft report untuk approval"""
+        """Submit pending report untuk approval"""
         result = await ReportService.submit_report(db, report_id, employee_id)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report approved for approval", result)
 
     @staticmethod
     async def approve_report(
         report_id: int,
-        approver_id: int,
+        current_user: dict,
         db: Session = Depends(get_db)
     ):
         """Admin approve report"""
-        result = await ReportService.approve_report(db, report_id, approver_id)
+        result = await ReportService.approve_report(db, report_id, current_user)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report approved successfully", result)
 
     @staticmethod
     async def reject_report(
         report_id: int,
-        approver_id: int,
+        current_user: dict,
         reason: str,
         db: Session = Depends(get_db)
     ):
         """Admin reject report dengan alasan"""
-        result = await ReportService.reject_report(db, report_id, approver_id, reason)
+        result = await ReportService.reject_report(db, report_id, current_user, reason)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report rejected successfully", result)
 
     @staticmethod
@@ -129,7 +129,7 @@ class ReportController:
         employee_id: int,
         db: Session = Depends(get_db)
     ):
-        """Delete draft report"""
+        """Delete pending report"""
         result = ReportService.delete_report(db, report_id, employee_id)
         return handle_response(200, MESSAGE_CODE.SUCCESS, "Report deleted successfully", result)
 

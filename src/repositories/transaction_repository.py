@@ -13,7 +13,8 @@ class TransactionRepository:
         new_transaction = Transaction(
             customer_id=transaction_data.customer_id,
             complaint=transaction_data.complaint,
-            status=TransactionStatus.PENDING.value
+            status=TransactionStatus.PENDING.value,
+            total_cost=transaction_data.total_cost
         )
         db.add(new_transaction)
         db.commit()
@@ -24,7 +25,7 @@ class TransactionRepository:
     def get_by_id(db: Session, transaction_id: int) -> Optional[Transaction]:
         return db.query(Transaction).options(
             joinedload(Transaction.customer),
-            joinedload(Transaction.reports),
+            joinedload(Transaction.reports).joinedload(Report.employee),
             joinedload(Transaction.histories)
         ).filter(Transaction.id == transaction_id).first()
 
@@ -38,18 +39,22 @@ class TransactionRepository:
         # Filter by employee if not admin
         if karyawan_id:
             query = query.join(Report).filter(Report.employee_id == karyawan_id)
+        print(search)
         
-        print(status)
-        
-        # Apply status filter 
+        # Apply status filter for multiple values
         if status:
-            try:
-                status_enum = TransactionStatus(status.upper())
-                query = query.filter(Transaction.status == status_enum)
-            except ValueError:
-                pass  # Invalid status, ignore filter
-        
-        print(query)
+            status_values = [s.strip().upper() for s in status.split(',')]
+            valid_statuses = []
+            
+            for status_value in status_values:
+                try:
+                    status_enum = TransactionStatus(status_value)
+                    valid_statuses.append(status_enum)
+                except ValueError:
+                    continue  # Skip invalid status values
+            
+            if valid_statuses:
+                query = query.filter(Transaction.status.in_(valid_statuses))
         
         # Apply search filter
         if search and search != "selected":

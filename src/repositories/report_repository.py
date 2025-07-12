@@ -10,7 +10,7 @@ from src.models.customer_model import Customer
 
 class ReportRepository:
     @staticmethod
-    def create_draft(
+    def create_pending(
         db: Session, 
         transaction_id: int,
         employee_id: int, 
@@ -26,7 +26,7 @@ class ReportRepository:
             start_time=start_time,
             end_time=end_time,
             image_url=image_url,
-            status=ReportStatus.DRAFT
+            status=ReportStatus.PENDING
         )
         db.add(new_report)
         db.commit()
@@ -38,6 +38,7 @@ class ReportRepository:
         return db.query(Report).options(
             joinedload(Report.employee),
             joinedload(Report.approver),
+            joinedload(Report.user),
             joinedload(Report.transaction).joinedload(Transaction.customer)
         ).filter(Report.id == report_id).first()
 
@@ -67,7 +68,13 @@ class ReportRepository:
         # Apply search filter
         if search:
             search_filter = f"%{search}%"
-            query = query.join(Employee).join(Transaction).join(Customer).filter(
+            query = query.join(
+                Report.employee  # Gunakan relationship yang sudah didefinisikan
+            ).join(
+                Report.transaction  # Gunakan relationship ke transaction
+            ).join(
+                Transaction.customer  # Gunakan relationship dari transaction ke customer
+            ).filter(
                 or_(
                     Employee.name.ilike(search_filter),
                     Report.description.ilike(search_filter),
@@ -101,7 +108,7 @@ class ReportRepository:
         query = db.query(Report).options(
             joinedload(Report.employee),
             joinedload(Report.transaction).joinedload(Transaction.customer)
-        ).filter(Report.status == ReportStatus.SUBMITTED)
+        ).filter(Report.status == ReportStatus.PENDING)
         
         # Get total count
         total_data = query.count()
@@ -127,7 +134,8 @@ class ReportRepository:
     def get_by_transaction_id(db: Session, transaction_id: int):
         return db.query(Report).options(
             joinedload(Report.employee),
-            joinedload(Report.approver)
+            joinedload(Report.approver),
+            joinedload(Report.user),
         ).filter(Report.transaction_id == transaction_id).order_by(Report.created_at.desc()).all()
 
     @staticmethod
@@ -144,7 +152,7 @@ class ReportRepository:
         return db.query(Report).filter(
             and_(
                 Report.transaction_id == transaction_id,
-                Report.status.in_([ReportStatus.DRAFT, ReportStatus.SUBMITTED])
+                Report.status.in_([ReportStatus.PENDING])
             )
         ).all()
 
@@ -169,11 +177,12 @@ class ReportRepository:
         return report
 
     @staticmethod
-    def approve(db: Session, report_id: int, approver_id: int) -> Optional[Report]:
+    def approve(db: Session, report_id: int, approver_id: int, approver_user_id: int) -> Optional[Report]:
         report = db.query(Report).filter(Report.id == report_id).first()
         if report:
             report.status = ReportStatus.APPROVED.value
             report.approved_by = approver_id
+            report.approved_user_by = approver_user_id
             report.approved_at = datetime.utcnow()
             report.rejection_reason = None
             db.commit()
@@ -181,11 +190,12 @@ class ReportRepository:
         return report
 
     @staticmethod
-    def reject(db: Session, report_id: int, approver_id: int, reason: str) -> Optional[Report]:
+    def reject(db: Session, report_id: int, approver_id: int, approver_user_id: int, reason: str) -> Optional[Report]:
         report = db.query(Report).filter(Report.id == report_id).first()
         if report:
             report.status = ReportStatus.REJECTED.value
             report.approved_by = approver_id
+            report.approved_user_by = approver_user_id
             report.approved_at = datetime.utcnow()
             report.rejection_reason = reason
             db.commit()
@@ -206,6 +216,7 @@ class ReportRepository:
         query = db.query(Report).options(
             joinedload(Report.employee),
             joinedload(Report.approver),
+            joinedload(Report.user),
             joinedload(Report.transaction).joinedload(Transaction.customer)
         )
         

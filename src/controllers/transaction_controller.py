@@ -15,7 +15,6 @@ class TransactionController:
         current_user: dict,
         db: Session = Depends(get_db)
     ):
-        print(current_user)
         """Admin buat transaksi perbaikan baru"""
         result = await TransactionService.create_transaction(db, transaction_data, current_user.get("user_id"))
         return handle_response(201, MESSAGE_CODE.CREATED, "Transaction created successfully", result)
@@ -32,7 +31,6 @@ class TransactionController:
         karyawan_id = None
         if not current_user.get("is_admin", False) and search != "selected":
             karyawan_id = current_user.get("karyawan_id")
-            
         result = TransactionService.get_all_transactions(db, page, perPage, search, status, karyawan_id)
         return handle_response(
             200,
